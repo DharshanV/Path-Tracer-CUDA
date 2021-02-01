@@ -14,10 +14,10 @@ public:
 		ss << "P3\n" << width << ' ' << height << " 255\n";
 		for (int j = 0; j < height; ++j) {
 			for (int i = 0; i < width; ++i) {
-				Color pixel = imageData[index(i, j)];
-				int r = (int)clamp(pixel.r, 0, 255);
-				int g = (int)clamp(pixel.g, 0, 255);
-				int b = (int)clamp(pixel.b, 0, 255);
+				vec3 pixel = imageData[index(i, j)].RGB * 255;
+				int r = (int)clamp(pixel[0], 0, 255);
+				int g = (int)clamp(pixel[1], 0, 255);
+				int b = (int)clamp(pixel[2], 0, 255);
 				ss << r << ' ' << g << ' ' << b << '\n';
 			}
 		}

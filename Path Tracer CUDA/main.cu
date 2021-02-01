@@ -4,8 +4,8 @@
 using namespace std;
 
 int main() {
-	const int WIDTH = 1600;
-	const int HEIGHT = 900;
+	const int WIDTH = 500;
+	const int HEIGHT = 500;
 
 	PPM image(WIDTH, HEIGHT);
 	Camera camera(vec3(0), vec3(0, 0, -1), (float)WIDTH / HEIGHT);

@@ -60,6 +60,10 @@ public:
     vec3 operator+(const vec3& o) {
         return vec3(x + o.x, y + o.y, z + o.z);
     }
+    __host__ __device__
+    vec3 operator+(const vec3& o) const {
+        return vec3(x + o.x, y + o.y, z + o.z);
+    }
 
     __host__ __device__
     vec3& operator+=(const vec3& o) {
@@ -91,6 +95,11 @@ public:
     // Multiplication by scalars
     __host__ __device__
     vec3 operator*(const float s) {
+        return vec3(x * s, y * s, z * s);
+    }
+
+    __host__ __device__
+    vec3 operator*(const float s) const {
         return vec3(x * s, y * s, z * s);
     }
 
@@ -142,6 +151,13 @@ public:
         y = ny;
         z = nz;
         return *this;
+    }
+
+    float operator[](int i) {
+        if (i == 0) return x;
+        if (i == 1) return y;
+        if (i == 2) return z;
+        return -1;
     }
 
     // Other functions
