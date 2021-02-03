@@ -161,9 +161,10 @@ int main() {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		if (lockFPS(60)) {
+		if (lockFPS(40)) {
 			window.clear();
 
+			renderer.updateCamera(camera);
 			renderer.render(&imageTexture[0].x, 50);
 			texture.load(&imageTexture[0].x);
 
@@ -172,7 +173,6 @@ int main() {
 			glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, 0);
 			texture.unbind();
 			VAO.unbind();
-			renderer.updateCamera(camera);
 		}
 
 		window.swapBuffers();
@@ -276,9 +276,6 @@ void createScene(Renderer& renderer) {
 			} else if (choose_mat < 1.0f) {
 				Material metal(color, 1, randFloat(0.1f, 0.5f));
 				renderer.addSphere(Sphere(center, 0.2), metal);
-			} else if (choose_mat < 1.2f) {
-				Material emissive(color, 0, 0, 0, 0, 10.0f);
-				renderer.addSphere(Sphere(center, 0.1), emissive);
 			}
 		}
 	}
