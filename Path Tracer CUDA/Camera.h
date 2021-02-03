@@ -1,35 +1,45 @@
 #pragma once
-#include "vec3.h"
-#include "Ray.h"
+#include <glm/glm.hpp>
+#include <cuda_runtime.h>
+
 #define PI 3.14159265f
 
-class Camera {
-public:
+struct Camera {
     __host__ __device__
-    Camera(vec3& pos, vec3& lookAt, float aspectRatio) : cp(pos), aspectRatio(aspectRatio){
+    Camera(const glm::vec3& pos,const glm::vec3& lookAt,const float aspectRatio) : cp(pos), aspectRatio(aspectRatio) {
         this->LookAt(lookAt);
-    }
-    __host__ __device__
-    void LookAt(vec3& p) {
-        vec3 up(0, 1, 0);
-        cd = (p - cp).normalised();
-        cr = (up ^ cd).normalised();
-        cu = (cd ^ cr).normalised();
     }
 
     __host__ __device__
-    Ray getRay(float x, float y) {
+    Camera& operator=(const Camera& o) {
+        cp = o.cp;
+        cd = o.cd;
+        cr = o.cr;
+        cu = o.cu;
+        aspectRatio = o.aspectRatio;
+        return *this;
+    }
+
+    __host__ __device__
+    inline void LookAt(const glm::vec3& p) {
+        glm::vec3 up(0, 1, 0);
+        cd = glm::normalize(p - cp);
+        cr = glm::normalize(glm::cross(up, cd));
+        cu = glm::normalize(glm::cross(cd, cr));
+    }
+
+    __host__ __device__
+    inline Ray getRay(float x, float y) {
         float deltaX = (-2.0f * x + 1.0f) * tan(FOV / 2 * PI / 180) * aspectRatio;
         float deltaY = (-2.0f * y + 1.0f) * tan(FOV / 2 * PI / 180);
-        vec3 rd = (cr * deltaX + cu * deltaY + cd).normalised();
+        glm::vec3 rd = glm::normalize(cr * deltaX + cu * deltaY + cd);
         return Ray(cp, rd);
     }
 
-private:
-    vec3 cp;
-    vec3 cd;
-    vec3 cr;
-    vec3 cu;
+    glm::vec3 cp;
+    glm::vec3 cd;
+    glm::vec3 cr;
+    glm::vec3 cu;
     float aspectRatio;
-    float FOV = 90.0f;
+    const float FOV = 90.0f;
 };

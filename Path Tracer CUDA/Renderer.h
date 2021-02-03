@@ -1,58 +1,132 @@
 #pragma once
-#include <iostream>
+#include <vector>
 #include <chrono>
+#include <sstream>
+#include <fstream>
 
-#include "PPM.h"
-#include "CUDAKernels.h"
-#include "Scene.h"
+#include "RenderKernel.h"
+#include "CUDAHeaders.h"
 
 class Renderer {
 public:
-	Renderer(Image* image,Camera* hCamera, int numOfThreads = 8) : image(image) {
-		this->width = image->width;
-		this->height = image->height;
+	Renderer(int width,int height, const Camera& cam, int numOfThreads = 8) : camera(cam) {
+		this->width = width;
+		this->height = height;
 
 		threadsPerBlock = dim3(numOfThreads, numOfThreads);
 		numOfBlocks = dim3(width / numOfThreads, height / numOfThreads);
-
-		//create camera
-		cudaMalloc(&dCamera, sizeof(Camera));
-		cudaMemcpy(dCamera, hCamera, sizeof(Camera), cudaMemcpyHostToDevice);
-
-		//create scene
-		cudaMalloc(&scene, sizeof(Scene*));
-		createScene KERNEL_ARG2(1, 1)(scene);
 	}
 
 	~Renderer() {
-		cudaFree(dCamera);
-		cudaFree(scene);
+		cudaFree(dImageData);
+		cudaFree(&scene.camera);
+		cudaFree(&scene.lights);
+		cudaFree(&scene.spheres);
+		cudaFree(&scene.materials);
+		cudaFree(dRandState);
 	}
 
-
-	void run(const char* fileName) {
-		auto t1 = std::chrono::high_resolution_clock::now();
-		render KERNEL_ARG2(numOfBlocks, threadsPerBlock)(image->imageData, width, height, dCamera, scene);
+	void updateCamera(const Camera& cam) {
+		this->camera = cam;
+		cudaMemcpy(scene.camera, &camera, sizeof(Camera), cudaMemcpyHostToDevice);
 		cudaDeviceSynchronize();
-		image->writeToFile(fileName);
-		auto t2 = std::chrono::high_resolution_clock::now();
-		elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+	}
+	
+	void addSphere(Sphere s,Material mat) {
+		s.matIndex = (int)materials.size();
+		spheres.push_back(s);
+		materials.push_back(mat);
 	}
 
-	uint64_t getElapsed() { return elapsed; }
+	void addPlane(Plane p, Material mat) {
+		p.matIndex = (int)materials.size();
+		planes.push_back(p);
+		materials.push_back(mat);
+	}
 
+	void addLight(Light l) {
+		lights.push_back(l);
+	}
+
+	void render(const char* fileName) {
+		commit();
+
+		renderInit KERNEL_ARG2(numOfBlocks, threadsPerBlock)(width, height, dRandState);
+		cudaDeviceSynchronize();
+
+		auto start = std::chrono::steady_clock::now();
+		renderKernel KERNEL_ARG2(numOfBlocks, threadsPerBlock)(dImageData, width, height, scene, dRandState);
+		cudaDeviceSynchronize();
+		auto end = std::chrono::steady_clock::now();
+		elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+		writeToFile(fileName);
+	}
+
+	size_t getElapsed() { return elapsed; }
+	
 private:
+	void commit() {
+		//create random states
+		cudaMalloc(&dRandState, width * height * sizeof(curandState));
 
+		cudaMalloc(&dImageData, width * height * sizeof(glm::vec3));
+		cudaMalloc(&scene.camera, sizeof(Camera));
+		cudaMalloc(&scene.lights, lights.size() * sizeof(Light));
+		cudaMalloc(&scene.spheres, spheres.size() * sizeof(Sphere));
+		cudaMalloc(&scene.planes, planes.size() * sizeof(Plane));
+		cudaMalloc(&scene.materials, materials.size() * sizeof(Material));
+
+		scene.numSpheres = (int)spheres.size();
+		scene.numLights = (int)lights.size();
+		scene.numPlanes = (int)planes.size();
+
+		cudaMemcpy(scene.camera, &camera, sizeof(Camera), cudaMemcpyHostToDevice);
+		cudaMemcpy(scene.lights, &lights[0], lights.size() * sizeof(Light), cudaMemcpyHostToDevice);
+		cudaMemcpy(scene.spheres, &spheres[0], spheres.size() * sizeof(Sphere), cudaMemcpyHostToDevice);
+		cudaMemcpy(scene.planes, &planes[0], planes.size() * sizeof(Plane), cudaMemcpyHostToDevice);
+		cudaMemcpy(scene.materials, &materials[0], materials.size() * sizeof(Material), cudaMemcpyHostToDevice);
+	}
+
+	void writeToFile(const char* fileName) {
+		glm::vec3* imageData = new glm::vec3[width * height];
+		cudaMemcpy(imageData, dImageData, width * height * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
+
+		if (imageData == nullptr)return;
+		std::stringstream ss;
+		ss << "P3\n" << width << ' ' << height << " 255\n";
+		for (int j = 0; j < height; ++j) {
+			for (int i = 0; i < width; ++i) {
+				glm::vec3 pixel = imageData[i + j * width] * 255.0f;
+				int r = (int)clamp(pixel[0], 0, 255);
+				int g = (int)clamp(pixel[1], 0, 255);
+				int b = (int)clamp(pixel[2], 0, 255);
+				ss << r << ' ' << g << ' ' << b << '\n';
+			}
+		}
+		std::ofstream out(fileName);
+		out << ss.rdbuf();
+		out.close();
+		delete[] imageData;
+	}
+
+	float clamp(float value, float low, float high) {
+		return std::max(low, std::min(value, high));
+	}
 private:
-	Image* image;
-
 	int width;
 	int height;
-	uint64_t elapsed;
+	glm::vec3* dImageData;
+	curandState* dRandState;
+
+	Scene scene;
+	Camera camera;
+	size_t elapsed;
 
 	dim3 numOfBlocks;
 	dim3 threadsPerBlock;
 
-	Camera* dCamera;
-	Scene** scene;
+	std::vector<Light> lights;
+	std::vector<Sphere> spheres;
+	std::vector<Plane> planes;
+	std::vector<Material> materials;
 };

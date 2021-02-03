@@ -1,60 +1,46 @@
 #include <iostream>
 #include "Renderer.h"
-
+#include <string>
 using namespace std;
+using namespace glm;
+
+void createScene(Renderer& renderer) {
+	vec3 red = vec3(0.8f, 0, 0);
+	vec3 gray = vec3(0.9f);
+	vec3 purple = vec3(0.8f, 0.1f, 1.0f);
+	vec3 green = vec3(0.3f, 1.0f, 0.7f);
+	vec3 blue = vec3(0.5f, 0.7f, 1.0f);
+	vec3 lightGreen = vec3(0.7f, 0.7f, 0.5f);
+
+	Material redMarble(red);
+	Material greyMetal(gray, 1, 0.1f);
+	Material purpleMarble(purple, 0, 0, 1, 1.0f);
+	Material greenMarble(green);
+	Material blueMarble(blue);
+	Material planeMat(lightGreen);
+
+	renderer.addSphere(Sphere(vec3(-0.5f, 0.0f, -5.0f), 1.0f), greyMetal);
+	renderer.addSphere(Sphere(vec3(-0.3f, -0.6f, -3.0f), 0.4f), purpleMarble);
+	renderer.addSphere(Sphere(vec3(1.5f, -0.6f, -3.0f), 0.4f), greenMarble);
+	renderer.addSphere(Sphere(vec3(-2.1f, -0.3f, -3.0f), 0.7f), blueMarble);
+	renderer.addSphere(Sphere(vec3(-2.0f, -0.6f, -5.0f), 0.4f), redMarble);
+	renderer.addPlane(Plane(vec3(0.0f, -1.0f, -5.0f), vec3(0, 1, 0), 20, 20), planeMat);
+
+	renderer.addLight(Light(glm::vec3(-7, 7, 3), 1.0f));
+	renderer.addLight(Light(glm::vec3(7, 7, 3), 0.2f));
+}
 
 int main() {
-	const int WIDTH = 1600;
-	const int HEIGHT = 900;
+	int width = 500;
+	int height = 500;
+	int numOfFrames = 5;
+	Camera camera(vec3(0.05f, 0, 0.5f), vec3(0,0,-1.0f), (float)width / (float)height);
+	Renderer renderer(width, height, camera);
+	createScene(renderer);
 
-	PPM image(WIDTH, HEIGHT);
-	Camera camera(vec3(0), vec3(0, 0, -1), (float)WIDTH / HEIGHT);
-	Renderer renderer(&image,&camera);
-
-	renderer.run("test.ppm");
-
-	cout << "Elapsed: " << renderer.getElapsed() << endl;
+	renderer.updateCamera(camera);
+	renderer.render("test.ppm");
 	system("start test.ppm");
 	system("PAUSE");
 	return 0;
 }
-
-/*
-* float clamp(float value, float low, float high) {
-	return std::max(low, std::min(value, high));
-}
-	Camera camera(WIDTH,HEIGHT);
-	Color* imageData = new Color[WIDTH * HEIGHT];
-	Object* sphere = new Sphere(vec3(0,0,-3));
-
-	for (int j = 0; j < HEIGHT; ++j) {
-		for (int i = 0; i < WIDTH; ++i) {
-			Ray ray = camera.getRay(i, j);
-			float t;
-			if (sphere->rayIntersect(ray.origin, ray.dir, t)) {
-				imageData[i + j * WIDTH] = Color(255, 0, 0);
-			}
-			else {
-				imageData[i + j * WIDTH] = Color(0, 0, 0);
-			}
-		}
-	}
-
-
-	std::stringstream ss;
-	ss << "P3\n" << WIDTH << ' ' << HEIGHT << " 255\n";
-	for (int j = 0; j < HEIGHT; ++j) {
-		for (int i = 0; i < WIDTH; ++i) {
-			Color pixel = imageData[i + j * WIDTH];
-			int r = (int)clamp(pixel.r, 0, 255);
-			int g = (int)clamp(pixel.g, 0, 255);
-			int b = (int)clamp(pixel.b, 0, 255);
-			ss << r << ' ' << g << ' ' << b << '\n';
-		}
-	}
-	std::ofstream out("test.ppm");
-	out << ss.rdbuf();
-	out.close();
-	delete[] imageData;
-
-*/

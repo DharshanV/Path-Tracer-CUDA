@@ -1,29 +1,21 @@
 #pragma once
-#include "vec3.h"
+#include <glm/glm.hpp>
+#include <cuda_runtime.h>
 
-class Material {
-public:
-    __device__
-    Material() : albedoColor(1, 0, 0), diffuseColor(0), specularExpo(2) {}
+struct Material {
+	__host__ __device__
+	Material(glm::vec3 color = glm::vec3(1.0f),
+			float isReflective = 0, float reflection = 0,
+			float isRefractive = 0, float indexOfRefraction = 0) : color(color),
+		isReflective(isReflective), reflection(reflection),
+		isRefractive(isRefractive), indexOfRefraction(indexOfRefraction) {
+	}
 
-    __device__
-    Material(const Material& m)
-        : albedoColor(m.albedoColor),
-        diffuseColor(m.diffuseColor),
-        specularExpo(m.specularExpo) {
-    }
-    __device__
-    Material(const vec3& a, const vec3& color, float specular)
-        : albedoColor(a), diffuseColor(color), specularExpo(specular) {
-    }
-    __device__
-    void setDiffuse(const vec3& diffuseColor) { this->diffuseColor = diffuseColor; }
-    __device__
-    void setAlbedo(const vec3& albedoColor) { this->albedoColor = albedoColor; }
-    __device__
-    void setSpecular(const float& specular) { this->specularExpo = specular; }
-
-    vec3 diffuseColor;
-    vec3 albedoColor;
-    float specularExpo;
+	glm::vec3 color;
+	float isReflective;
+	float reflection;
+	float isRefractive;
+	float indexOfRefraction;
+	//float emittance;
+	//float translucence;
 };
