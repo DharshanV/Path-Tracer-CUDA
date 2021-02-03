@@ -15,8 +15,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void processInput(GLFWwindow* window);
 bool lockFPS(uint32_t FPS);
 
-uint32_t WIDTH = 1280;
-uint32_t HEIGHT = 720;
+uint32_t WIDTH = 500;
+uint32_t HEIGHT = 500;
 float lastX = WIDTH / 2.0f;
 float lastY = HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -159,7 +159,7 @@ int main() {
 		if (lockFPS(60)) {
 			window.clear();
 
-			renderer.render(&imageTexture[0].x, samples);
+			renderer.render(&imageTexture[0].x, 10);
 			texture.load(&imageTexture[0].x);
 
 			VAO.bind();
@@ -168,7 +168,7 @@ int main() {
 			texture.unbind();
 			VAO.unbind();
 			renderer.updateCamera(camera);
-			samples = glm::clamp(++samples, SAMPLE_MIN, SAMPLE_MAX);
+			//samples = glm::clamp(++samples, SAMPLE_MIN, SAMPLE_MAX);
 		}
 		window.swapBuffers();
 		window.getEvents();
@@ -218,7 +218,7 @@ void processInput(GLFWwindow* window) {
 
 	if (hasInput) {
 		camera.ProcessKeyboard(movement, deltaTime);
-		samples = SAMPLE_MIN;
+		//samples = SAMPLE_MIN;
 	}
 
 }
@@ -240,7 +240,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	lastY = ypos;
 
 	camera.ProcessMouseMovement(xoffset, yoffset);
-	samples = SAMPLE_MIN;
+	//samples = SAMPLE_MIN;
 }
 
 void createScene(Renderer& renderer) {
@@ -251,8 +251,8 @@ void createScene(Renderer& renderer) {
 	vec3 blue = vec3(0.5f, 0.7f, 1.0f);
 	vec3 lightGreen = vec3(0.7f, 0.7f, 0.5f);
 
-	Material redMarble(red);
-	Material greyMetal(gray, 1, 0.1f);
+	Material redMarble(red,0,0,0,0,10.0f);
+	Material greyMetal(gray, 1, 0.0f);
 	Material purpleMarble(purple, 0, 0, 1, 1.0f);
 	Material greenMarble(green);
 	Material blueMarble(blue);

@@ -71,6 +71,12 @@ bool scatter(const Ray& ray, const IntersectInfo& rec, glm::vec3& attenuation, R
             scattered = Ray(rec.hitPoint, refracted);
         return true;
     }
+    else if (mat.emittance > 0.0f) {
+        glm::vec3 target = rec.hitPoint + rec.N + randomInHemisphere(local_rand_state);
+        attenuation *= mat.color * mat.emittance;
+        scattered = Ray(rec.hitPoint, target - rec.hitPoint);
+        return true;
+    }
     else {
         glm::vec3 target = rec.hitPoint + rec.N + randomInHemisphere(local_rand_state);
         scattered = Ray(rec.hitPoint, target - rec.hitPoint);
