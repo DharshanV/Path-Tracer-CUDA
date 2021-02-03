@@ -106,7 +106,7 @@ glm::vec3 castRay(const Ray& ray, Scene* scene, curandState* localRandState) {
 }
 
 __global__
-void renderKernel(glm::vec3* imageData, int width, int height, Scene scene, curandState* randState) {
+void renderKernel(glm::vec3* imageData, int samples, int width, int height, Scene scene, curandState* randState) {
 	int x = threadIdx.x + blockIdx.x * blockDim.x;
 	int y = threadIdx.y + blockIdx.y * blockDim.y;
 	if (x >= width || y >= height) return;
@@ -114,7 +114,6 @@ void renderKernel(glm::vec3* imageData, int width, int height, Scene scene, cura
 	uint32_t index = x + y * width;
 	Camera* camera = scene.camera;
     curandState localRandState = randState[index];
-    const int samples = MAX_SAMPLES;
 
     glm::vec3 pixelColor(0.0f);
     for (int i = 0; i < samples; i++) {

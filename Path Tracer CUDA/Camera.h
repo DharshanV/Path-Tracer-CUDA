@@ -1,45 +1,108 @@
 #pragma once
+#include <glad/glad.h>
 #include <glm/glm.hpp>
-#include <cuda_runtime.h>
+#include <glm/gtc/matrix_transform.hpp>
+
+#include <vector>
 
 #define PI 3.14159265f
+enum Camera_Movement {
+    FORWARD,
+    BACKWARD,
+    LEFT,
+    RIGHT,
+    UP,
+    DOWN,
+};
 
-struct Camera {
-    __host__ __device__
-    Camera(const glm::vec3& pos,const glm::vec3& lookAt,const float aspectRatio) : cp(pos), aspectRatio(aspectRatio) {
-        this->LookAt(lookAt);
-    }
+constexpr auto YAW = -90.0f;
+constexpr auto PITCH = 0.0f;
+constexpr auto SPEED = 2.5f;
+constexpr auto SENSITIVITY = 0.1f;
+constexpr auto ZOOM = 45.0f;
+
+class Camera {
+public:
+    glm::vec3 Position;
+    glm::vec3 Front;
+    glm::vec3 Up;
+    glm::vec3 Right;
+    glm::vec3 WorldUp;
+    float Yaw;
+    float Pitch;
+    float MovementSpeed;
+    float MouseSensitivity;
+    float Zoom;
 
     __host__ __device__
-    Camera& operator=(const Camera& o) {
-        cp = o.cp;
-        cd = o.cd;
-        cr = o.cr;
-        cu = o.cu;
-        aspectRatio = o.aspectRatio;
-        return *this;
-    }
-
-    __host__ __device__
-    inline void LookAt(const glm::vec3& p) {
-        glm::vec3 up(0, 1, 0);
-        cd = glm::normalize(p - cp);
-        cr = glm::normalize(glm::cross(up, cd));
-        cu = glm::normalize(glm::cross(cd, cr));
+    Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM) {
+        Position = position;
+        WorldUp = up;
+        Yaw = yaw;
+        Pitch = pitch;
+        updateCameraVectors();
     }
 
     __host__ __device__
     inline Ray getRay(float x, float y) {
-        float deltaX = (-2.0f * x + 1.0f) * tan(FOV / 2 * PI / 180) * aspectRatio;
-        float deltaY = (-2.0f * y + 1.0f) * tan(FOV / 2 * PI / 180);
-        glm::vec3 rd = glm::normalize(cr * deltaX + cu * deltaY + cd);
-        return Ray(cp, rd);
+        float deltaX = (-2.0f * x + 1.0f) * tan(90.0f / 2 * PI / 180);
+        float deltaY = (-2.0f * y + 1.0f) * tan(90.0f / 2 * PI / 180);
+        glm::vec3 rd = glm::normalize(Right * deltaX + Up * deltaY + Front);
+        return Ray(Position, rd);
     }
 
-    glm::vec3 cp;
-    glm::vec3 cd;
-    glm::vec3 cr;
-    glm::vec3 cu;
-    float aspectRatio;
-    const float FOV = 90.0f;
+    glm::mat4 GetViewMatrix() {
+        return glm::lookAt(Position, Position + Front, Up);
+    }
+
+    void ProcessKeyboard(Camera_Movement direction, float deltaTime) {
+        float velocity = MovementSpeed * deltaTime;
+        if (direction == FORWARD)
+            Position += Front * velocity;
+        if (direction == BACKWARD)
+            Position -= Front * velocity;
+        if (direction == LEFT)
+            Position -= Right * velocity;
+        if (direction == RIGHT)
+            Position += Right * velocity;
+        if (direction == UP)
+            Position += Up * velocity;
+        if (direction == DOWN)
+            Position -= Up * velocity;
+    }
+
+    void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true) {
+        xoffset *= MouseSensitivity;
+        yoffset *= MouseSensitivity;
+
+        Yaw += xoffset;
+        Pitch += yoffset;
+
+        if (constrainPitch) {
+            if (Pitch > 89.0f)
+                Pitch = 89.0f;
+            if (Pitch < -89.0f)
+                Pitch = -89.0f;
+        }
+        updateCameraVectors();
+    }
+
+    void ProcessMouseScroll(float yoffset) {
+        Zoom -= (float)yoffset;
+        if (Zoom < 1.0f)
+            Zoom = 1.0f;
+        if (Zoom > 45.0f)
+            Zoom = 45.0f;
+    }
+private:
+    __host__ __device__
+    void updateCameraVectors() {
+        glm::vec3 front;
+        front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+        front.y = sin(glm::radians(Pitch));
+        front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+        Front = glm::normalize(front);
+        Right = glm::normalize(glm::cross(WorldUp, Front));
+        Up = glm::normalize(glm::cross(Front, Right));
+    }
 };

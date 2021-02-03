@@ -12,9 +12,14 @@ public:
 	Renderer(int width,int height, const Camera& cam, int numOfThreads = 8) : camera(cam) {
 		this->width = width;
 		this->height = height;
-
+		commited = false;
 		threadsPerBlock = dim3(numOfThreads, numOfThreads);
 		numOfBlocks = dim3(width / numOfThreads, height / numOfThreads);
+
+		//create random states
+		cudaMalloc(&dRandState, width * height * sizeof(curandState));
+		renderInit KERNEL_ARG2(numOfBlocks, threadsPerBlock)(width, height, dRandState);
+		cudaDeviceSynchronize();
 	}
 
 	~Renderer() {
@@ -48,27 +53,34 @@ public:
 		lights.push_back(l);
 	}
 
-	void render(const char* fileName) {
+	void render(const char* fileName,int samples) {
 		commit();
 
-		renderInit KERNEL_ARG2(numOfBlocks, threadsPerBlock)(width, height, dRandState);
-		cudaDeviceSynchronize();
-
 		auto start = std::chrono::steady_clock::now();
-		renderKernel KERNEL_ARG2(numOfBlocks, threadsPerBlock)(dImageData, width, height, scene, dRandState);
+		renderKernel KERNEL_ARG2(numOfBlocks, threadsPerBlock)(dImageData, samples, width, height, scene, dRandState);
 		cudaDeviceSynchronize();
 		auto end = std::chrono::steady_clock::now();
 		elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 		writeToFile(fileName);
 	}
 
+	void render(float* imageTexture,int samples) {
+		commit();
+
+		auto start = std::chrono::steady_clock::now();
+		renderKernel KERNEL_ARG2(numOfBlocks, threadsPerBlock)(dImageData, samples, width, height, scene, dRandState);
+		cudaDeviceSynchronize();
+		auto end = std::chrono::steady_clock::now();
+		elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
+		writeToImage(imageTexture);
+	}
+
 	size_t getElapsed() { return elapsed; }
 	
 private:
 	void commit() {
-		//create random states
-		cudaMalloc(&dRandState, width * height * sizeof(curandState));
-
+		if (commited) return;
 		cudaMalloc(&dImageData, width * height * sizeof(glm::vec3));
 		cudaMalloc(&scene.camera, sizeof(Camera));
 		cudaMalloc(&scene.lights, lights.size() * sizeof(Light));
@@ -85,6 +97,7 @@ private:
 		cudaMemcpy(scene.spheres, &spheres[0], spheres.size() * sizeof(Sphere), cudaMemcpyHostToDevice);
 		cudaMemcpy(scene.planes, &planes[0], planes.size() * sizeof(Plane), cudaMemcpyHostToDevice);
 		cudaMemcpy(scene.materials, &materials[0], materials.size() * sizeof(Material), cudaMemcpyHostToDevice);
+		commited = true;
 	}
 
 	void writeToFile(const char* fileName) {
@@ -109,6 +122,10 @@ private:
 		delete[] imageData;
 	}
 
+	void writeToImage(float* imageTexture) {
+		cudaMemcpy(imageTexture, dImageData, width * height * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
+	}
+
 	float clamp(float value, float low, float high) {
 		return std::max(low, std::min(value, high));
 	}
@@ -117,6 +134,7 @@ private:
 	int height;
 	glm::vec3* dImageData;
 	curandState* dRandState;
+	bool commited;
 
 	Scene scene;
 	Camera camera;

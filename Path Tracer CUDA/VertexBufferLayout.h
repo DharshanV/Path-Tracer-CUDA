@@ -26,7 +26,6 @@ public:
 	template<typename T>
 	void push(int count) {
 		cout << "Error pushing" << endl;
-		static_assert(!true);
 	}
 
 	const vector<Elements>& getElements() const { return elements; };

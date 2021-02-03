@@ -29,8 +29,6 @@ public:
 	int getWidth() { return width; };
 	int getHeight() { return height; };
 	GLFWwindow* getWindow() { return window; };
-public:
-	void processInput();
 private:
 	GLFWwindow* window;
 	bool good;

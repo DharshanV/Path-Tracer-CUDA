@@ -49,6 +49,9 @@
     <Filter Include="Header Files\OpenGL\Vertex Buffer">
       <UniqueIdentifier>{865facd2-b748-4c1d-b897-e54987d7e30b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\OpenGL\Shaders\Source">
+      <UniqueIdentifier>{089f50e1-b50f-45c8-9c07-020934f1971b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RenderKernel.h">
@@ -139,5 +142,13 @@
     <ClCompile Include="VertexBuffer.cpp">
       <Filter>Header Files\OpenGL\Vertex Buffer</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="QuadShader.frag">
+      <Filter>Header Files\OpenGL\Shaders\Source</Filter>
+    </None>
+    <None Include="QuadShader.vert">
+      <Filter>Header Files\OpenGL\Shaders\Source</Filter>
+    </None>
   </ItemGroup>
 </Project>

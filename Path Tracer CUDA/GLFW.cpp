@@ -4,7 +4,7 @@ GLFW::GLFW(unsigned int width, unsigned int height, const char* name) {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	window = glfwCreateWindow(width, height, name, NULL, NULL);
 	good = true;
@@ -66,12 +66,6 @@ int GLFW::getInputMode(int mode)
 
 GLFW::~GLFW() {
 	glfwTerminate();
-}
-
-void GLFW::processInput()
-{
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
 }
 
 void GLFW::setCursor(int value)

@@ -1,6 +1,6 @@
 #include "Texture.h"
 
-Texture::Texture(const uint8_t* data, uint32_t width, uint32_t height) {
+Texture::Texture(const float* data, uint32_t width, uint32_t height) {
 	textureID = 0;
 	this->width = width;
 	this->height = height;
@@ -14,7 +14,7 @@ Texture::Texture(const uint8_t* data, uint32_t width, uint32_t height) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	if (data != nullptr) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_FLOAT, data);
 	}
 }
 
@@ -23,10 +23,10 @@ void Texture::bind(unsigned int slot) {
 	glBindTexture(GL_TEXTURE_2D, textureID);
 }
 
-void Texture::load(const uint8_t* data) {
+void Texture::load(const float* data) {
 	this->bind();
 	if (data != nullptr) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_FLOAT, data);
 	}
 	this->unbind();
 }
