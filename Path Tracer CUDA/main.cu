@@ -34,7 +34,7 @@ int main() {
 	int width = 500;
 	int height = 500;
 	int numOfFrames = 5;
-	Camera camera(vec3(0.05f, 0, 0.5f), vec3(0,0,-1.0f), (float)width / (float)height);
+	Camera camera(vec3(0.05f, 0, 0.5f), vec3(0, 0, -1.0f), (float)width / (float)height);
 	Renderer renderer(width, height, camera);
 	createScene(renderer);
 
