@@ -11,16 +11,24 @@ typedef struct IntersectInfo {
 
 __device__ __host__
 bool sphereIntersection(const Ray& ray,const Sphere& sphere, float& t) {
-    glm::vec3 oToC = sphere.pos - ray.origin;
-    float t1 = glm::dot(ray.dir, oToC);
-    float rayToC = glm::dot(oToC, oToC) - (t1 * t1);
-    if (rayToC > sphere.radius) return false;
-    float deltaT = sqrt(sphere.radius * sphere.radius - rayToC);
-    t = t1 - deltaT;
-    float abovePoint = t1 + deltaT;
-    if (t < 0) t = abovePoint;
-    if (t < 0) return false;
-    return true;
+    glm::vec3 oc = ray.origin - sphere.pos;
+    float a = glm::dot(ray.dir, ray.dir);
+    float b = glm::dot(oc, ray.dir);
+    float c = glm::dot(oc, oc) - sphere.radius * sphere.radius;
+    float discriminant = b * b - a * c;
+    if (discriminant > 0) {
+        float temp = (-b - glm::sqrt(discriminant)) / a;
+        if (temp < FLT_MAX && temp > 0.001f) {
+            t = temp;
+            return true;
+        }
+        temp = (-b + glm::sqrt(discriminant)) / a;
+        if (temp < FLT_MAX && temp > 0.001f) {
+            t = temp;
+            return true;
+        }
+    }
+    return false;
 }
 
 __device__
@@ -35,7 +43,7 @@ bool planeIntersetion(const Ray& ray, const Plane& plane, float& t) {
 
 __device__
 bool sceneIntersect(Scene* scene,const Ray& ray, IntersectInfo& info) {
-    float maxDistance = FLT_MAX;
+    float maxDistance = 50.0f;
     float t;
     for (int i = 0; i < scene->numSpheres; i++) {
         if (sphereIntersection(ray, scene->spheres[i], t) && t < maxDistance) {
@@ -53,5 +61,5 @@ bool sceneIntersect(Scene* scene,const Ray& ray, IntersectInfo& info) {
             maxDistance = t;
         }
     }
-    return maxDistance < 10000.0f;
+    return maxDistance < 50.0f;
 }

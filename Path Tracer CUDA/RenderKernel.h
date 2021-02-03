@@ -104,7 +104,7 @@ glm::vec3 castRay(const Ray& ray, Scene* scene, curandState* localRandState) {
         } else {
             glm::vec3 unit_direction = glm::normalize(curRay.dir);
             float t = 0.5f * (unit_direction.y + 1.0f);
-            glm::vec3 c = (1.0f - t) * glm::vec3(1.0, 1.0, 1.0) + t * glm::vec3(0.5, 0.7, 1.0);
+            glm::vec3 c = (1.0f - t) * glm::vec3(1.0f) + t * glm::vec3(0.3f);
             return cur_attenuation * c;
         }
     }

@@ -147,6 +147,11 @@ int main() {
 	//=================
 
 
+
+	//Simulation simulation(50,50);
+	//Particles p1(vec3(0.0f, 1.0f, -5.0f), vec3(1,-1,0));
+	//simulation.addParticle(p1);
+
 	//==================
 	//Render our quad
 	double lastTime = glfwGetTime();
@@ -159,7 +164,7 @@ int main() {
 		if (lockFPS(60)) {
 			window.clear();
 
-			renderer.render(&imageTexture[0].x, 10);
+			renderer.render(&imageTexture[0].x, 50);
 			texture.load(&imageTexture[0].x);
 
 			VAO.bind();
@@ -168,8 +173,8 @@ int main() {
 			texture.unbind();
 			VAO.unbind();
 			renderer.updateCamera(camera);
-			//samples = glm::clamp(++samples, SAMPLE_MIN, SAMPLE_MAX);
 		}
+
 		window.swapBuffers();
 		window.getEvents();
 	}
@@ -188,6 +193,14 @@ bool lockFPS(uint32_t FPS) {
 void processInput(GLFWwindow* window) {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
+	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS) {
+		if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED) {
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		}
+		else {
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		}
+	}
 
 	bool hasInput = false;
 	Camera_Movement movement;
@@ -243,28 +256,35 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	//samples = SAMPLE_MIN;
 }
 
+float randFloat(float a, float b) {
+	float random = ((float)rand()) / (float)RAND_MAX;
+	float diff = b - a;
+	float r = random * diff;
+	return a + r;
+}
+
 void createScene(Renderer& renderer) {
-	vec3 red = vec3(0.8f, 0, 0);
-	vec3 gray = vec3(0.9f);
-	vec3 purple = vec3(0.8f, 0.1f, 1.0f);
-	vec3 green = vec3(0.3f, 1.0f, 0.7f);
-	vec3 blue = vec3(0.5f, 0.7f, 1.0f);
-	vec3 lightGreen = vec3(0.7f, 0.7f, 0.5f);
+	int temp = 4;
+	for (int a = -temp; a < temp; a++) {
+		for (int b = -temp; b < temp; b++) {
+			float choose_mat = randFloat(0,1.0f);
+			vec3 center(a + randFloat(0, 1.0f), 0.2, b + randFloat(0, 1.0f));
+			glm::vec3 color = glm::vec3(randFloat(0.1f, 1.0f), randFloat(0.1f, 1.0f), randFloat(0.1f, 1.0f));
+			if (choose_mat < 0.5f) {
+				Material diffuse(color);
+				renderer.addSphere(Sphere(center, 0.2), diffuse);
+			} else if (choose_mat < 1.0f) {
+				Material metal(color, 1, randFloat(0.1f, 0.5f));
+				renderer.addSphere(Sphere(center, 0.2), metal);
+			} else if (choose_mat < 1.2f) {
+				Material emissive(color, 0, 0, 0, 0, 10.0f);
+				renderer.addSphere(Sphere(center, 0.1), emissive);
+			}
+		}
+	}
+	Material dielect(glm::vec3(0), 0, 0, 1, 1.5f);
+	renderer.addSphere(Sphere(glm::vec3(0, 1, -0.5f), 0.5), dielect);
 
-	Material redMarble(red,0,0,0,0,10.0f);
-	Material greyMetal(gray, 1, 0.0f);
-	Material purpleMarble(purple, 0, 0, 1, 1.0f);
-	Material greenMarble(green);
-	Material blueMarble(blue);
-	Material planeMat(lightGreen);
-
-	renderer.addSphere(Sphere(vec3(-0.5f, 0.0f, -5.0f), 1.0f), greyMetal);
-	renderer.addSphere(Sphere(vec3(-0.3f, -0.6f, -3.0f), 0.4f), purpleMarble);
-	renderer.addSphere(Sphere(vec3(1.5f, -0.6f, -3.0f), 0.4f), greenMarble);
-	renderer.addSphere(Sphere(vec3(-2.1f, -0.3f, -3.0f), 0.7f), blueMarble);
-	renderer.addSphere(Sphere(vec3(-2.0f, -0.6f, -5.0f), 0.4f), redMarble);
-	renderer.addPlane(Plane(vec3(0.0f, -1.0f, -5.0f), vec3(0, 1, 0), 20, 20), planeMat);
-
-	renderer.addLight(Light(glm::vec3(-7, 7, 3), 1.0f));
-	renderer.addLight(Light(glm::vec3(7, 7, 3), 0.2f));
+	Material planeMat(vec3(0.6f),1,0.1f);
+	renderer.addPlane(Plane(vec3(0.0f, 0.0f, -5.0f), vec3(0, 1, 0), 20, 20), planeMat);
 }

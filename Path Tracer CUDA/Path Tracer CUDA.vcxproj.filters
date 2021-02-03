@@ -52,6 +52,12 @@
     <Filter Include="Header Files\OpenGL\Shaders\Source">
       <UniqueIdentifier>{089f50e1-b50f-45c8-9c07-020934f1971b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Simulation">
+      <UniqueIdentifier>{60bd73c0-20c8-461d-9cea-ab503b0209c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Simulation\Particles">
+      <UniqueIdentifier>{ee148dbc-9ebf-4fc0-b45c-0ff6f644f74f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RenderKernel.h">
@@ -113,6 +119,12 @@
     </ClInclude>
     <ClInclude Include="VertexBufferLayout.h">
       <Filter>Header Files\OpenGL\Vertex Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Particles.h">
+      <Filter>Header Files\Simulation\Particles</Filter>
+    </ClInclude>
+    <ClInclude Include="Simulation.h">
+      <Filter>Header Files\Simulation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
