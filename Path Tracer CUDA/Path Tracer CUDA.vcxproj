@@ -24,6 +24,8 @@
     <ClInclude Include="CUDAIntersections.h" />
     <ClInclude Include="CUDAObjects.h" />
     <ClInclude Include="CUDARay.h" />
+    <ClInclude Include="ElementBuffer.h" />
+    <ClInclude Include="GLFW.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Material.h" />
@@ -32,12 +34,23 @@
     <ClInclude Include="RenderKernel.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Settings.h" />
+    <ClInclude Include="Shader.h" />
+    <ClInclude Include="Texture.h" />
+    <ClInclude Include="VertexArray.h" />
+    <ClInclude Include="VertexBuffer.h" />
+    <ClInclude Include="VertexBufferLayout.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="main.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ElementBuffer.cpp" />
     <ClCompile Include="glad.c" />
+    <ClCompile Include="GLFW.cpp" />
+    <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="VertexArray.cpp" />
+    <ClCompile Include="VertexBuffer.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

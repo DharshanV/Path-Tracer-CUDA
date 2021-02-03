@@ -1,5 +1,6 @@
 #include <iostream>
 #include "Renderer.h"
+#include "GLFW.h"
 
 using namespace std;
 using namespace glm;
@@ -30,7 +31,7 @@ void createScene(Renderer& renderer) {
 	renderer.addLight(Light(glm::vec3(7, 7, 3), 0.2f));
 }
 
-int main() {
+void temp() {
 	int width = 500;
 	int height = 500;
 	int numOfFrames = 5;
@@ -42,5 +43,22 @@ int main() {
 	renderer.render("test.ppm");
 	system("start test.ppm");
 	system("PAUSE");
+}
+
+int main() {
+	uint32_t screenWidth = 800;
+	uint32_t screenHeight = 500;
+	GLFW window(screenWidth, screenHeight, "Test Application");
+
+	if (!window.isGood()) { glfwTerminate(); return EXIT_FAILURE; }
+	window.setClearColor({ 1.0f,0,0,1.0f });
+
+	while (!window.close()) {
+		window.processInput();
+		window.clear();
+
+		window.swapBuffers();
+		window.getEvents();
+	}
 	return 0;
 }

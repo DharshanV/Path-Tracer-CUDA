@@ -28,6 +28,27 @@
     <Filter Include="Header Files\Scene">
       <UniqueIdentifier>{2cb5049c-9a36-4846-88bc-20bbd55bdd4b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\OpenGL">
+      <UniqueIdentifier>{3924ea76-aa7b-4b5f-a0e3-1535ed28fafd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\OpenGL\GLFW">
+      <UniqueIdentifier>{1ed83228-0b42-4190-a191-db6573efb0df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\OpenGL\Element Buffer">
+      <UniqueIdentifier>{ec7f2f43-a0f2-4678-8226-aca7c7f60f5a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\OpenGL\Shaders">
+      <UniqueIdentifier>{a725abcd-3beb-4f0a-881c-26cd2ce75850}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\OpenGL\Texture">
+      <UniqueIdentifier>{63ac3375-1aea-4a86-a223-5ef8921d9ca4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\OpenGL\Vertex Array">
+      <UniqueIdentifier>{738691a6-5e75-4622-a8b0-8cfd203bc4e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\OpenGL\Vertex Buffer">
+      <UniqueIdentifier>{865facd2-b748-4c1d-b897-e54987d7e30b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RenderKernel.h">
@@ -69,6 +90,27 @@
     <ClInclude Include="CUDAHeaders.h">
       <Filter>Header Files\Render Settings</Filter>
     </ClInclude>
+    <ClInclude Include="GLFW.h">
+      <Filter>Header Files\OpenGL\GLFW</Filter>
+    </ClInclude>
+    <ClInclude Include="ElementBuffer.h">
+      <Filter>Header Files\OpenGL\Element Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Header Files\OpenGL\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Header Files\OpenGL\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexArray.h">
+      <Filter>Header Files\OpenGL\Vertex Array</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexBuffer.h">
+      <Filter>Header Files\OpenGL\Vertex Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexBufferLayout.h">
+      <Filter>Header Files\OpenGL\Vertex Buffer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="main.cu">
@@ -78,6 +120,24 @@
   <ItemGroup>
     <ClCompile Include="glad.c">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GLFW.cpp">
+      <Filter>Header Files\OpenGL\GLFW</Filter>
+    </ClCompile>
+    <ClCompile Include="ElementBuffer.cpp">
+      <Filter>Header Files\OpenGL\Element Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Header Files\OpenGL\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Header Files\OpenGL\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexArray.cpp">
+      <Filter>Header Files\OpenGL\Vertex Array</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexBuffer.cpp">
+      <Filter>Header Files\OpenGL\Vertex Buffer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
