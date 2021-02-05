@@ -8,7 +8,7 @@
 
 class Renderer {
 public:
-	Renderer(int width,int height, const Camera& cam, int numOfThreads = 8) : camera(cam) {
+	Renderer(int width,int height, int numOfThreads = 8) {
 		this->width = width;
 		this->height = height;
 		commited = false;
@@ -23,17 +23,10 @@ public:
 
 	~Renderer() {
 		cudaFree(dImageData);
-		cudaFree(&scene.camera);
 		cudaFree(&scene.lights);
 		cudaFree(&scene.spheres);
 		cudaFree(&scene.materials);
 		cudaFree(dRandState);
-	}
-
-	void updateCamera(const Camera& cam) {
-		this->camera = cam;
-		cudaMemcpy(scene.camera, &camera, sizeof(Camera), cudaMemcpyHostToDevice);
-		cudaDeviceSynchronize();
 	}
 	
 	void addSphere(Sphere s,Material mat) {
@@ -52,23 +45,11 @@ public:
 		lights.push_back(l);
 	}
 
-	void render(float* imageTexture,int samples,bool globalLight) {
+	void render(cudaSurfaceObject_t surfaceObj,const Camera& camera, int samples, bool globalLight) {
 		commit();
 
 		auto start = std::chrono::steady_clock::now();
-		renderKernel KERNEL_ARG2(numOfBlocks, threadsPerBlock)(dImageData, samples, width, height, scene, dRandState, globalLight);
-		cudaDeviceSynchronize();
-		auto end = std::chrono::steady_clock::now();
-		elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-
-		writeToImage(imageTexture);
-	}
-
-	void render(cudaSurfaceObject_t surfaceObj, int samples, bool globalLight) {
-		commit();
-
-		auto start = std::chrono::steady_clock::now();
-		renderKernel KERNEL_ARG2(numOfBlocks, threadsPerBlock)(surfaceObj, samples, width, height, scene, dRandState, globalLight);
+		renderKernel KERNEL_ARG2(numOfBlocks, threadsPerBlock)(surfaceObj, camera, samples, width, height, scene, dRandState, globalLight);
 		cudaDeviceSynchronize();
 		auto end = std::chrono::steady_clock::now();
 		elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
@@ -80,7 +61,6 @@ private:
 	void commit() {
 		if (commited) return;
 		cudaMalloc(&dImageData, width * height * sizeof(glm::vec3));
-		cudaMalloc(&scene.camera, sizeof(Camera));
 		cudaMalloc(&scene.lights, lights.size() * sizeof(Light));
 		cudaMalloc(&scene.spheres, spheres.size() * sizeof(Sphere));
 		cudaMalloc(&scene.planes, planes.size() * sizeof(Plane));
@@ -90,7 +70,6 @@ private:
 		scene.numLights = (int)lights.size();
 		scene.numPlanes = (int)planes.size();
 
-		cudaMemcpy(scene.camera, &camera, sizeof(Camera), cudaMemcpyHostToDevice);
 		cudaMemcpy(scene.lights, &lights[0], lights.size() * sizeof(Light), cudaMemcpyHostToDevice);
 		cudaMemcpy(scene.spheres, &spheres[0], spheres.size() * sizeof(Sphere), cudaMemcpyHostToDevice);
 		cudaMemcpy(scene.planes, &planes[0], planes.size() * sizeof(Plane), cudaMemcpyHostToDevice);
@@ -98,13 +77,6 @@ private:
 		commited = true;
 	}
 
-	void writeToImage(float* imageTexture) {
-		cudaMemcpy(imageTexture, dImageData, width * height * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
-	}
-
-	float clamp(float value, float low, float high) {
-		return std::max(low, std::min(value, high));
-	}
 private:
 	int width;
 	int height;
@@ -113,7 +85,6 @@ private:
 	bool commited;
 
 	Scene scene;
-	Camera camera;
 	size_t elapsed;
 
 	dim3 numOfBlocks;

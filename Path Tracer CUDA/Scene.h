@@ -9,7 +9,6 @@ typedef struct Scene {
     Sphere* spheres;
     Plane* planes;
     Material* materials;
-    Camera* camera;
     int numLights;
     int numSpheres;
     int numPlanes;

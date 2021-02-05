@@ -83,7 +83,7 @@ int main() {
 
 	//==================
 	//Create CUDA Renderer
-	Renderer renderer(WIDTH, HEIGHT, camera);
+	Renderer renderer(WIDTH, HEIGHT);
 	createScene(renderer);
 	//=================
 
@@ -93,14 +93,13 @@ int main() {
 	double lastTime = glfwGetTime();
 	while (!window.close()) {
 		processInput(window.getWindow());
-		float currentFrame = glfwGetTime();
+		float currentFrame = (float)glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
 		if (lockFPS(60)) {
 			window.clear();
 
-			renderer.updateCamera(camera);
 			updateTexture(renderer, &texturePtr);
 
 			VAO.bind();
@@ -215,7 +214,7 @@ void createScene(Renderer& renderer) {
 				Material diffuse(color);
 				renderer.addSphere(Sphere(center, 0.2), diffuse);
 			} else if (choose_mat < 1.0f) {
-				Material metal(color, 1, randFloat(0.1f, 0.5f));
+				Material metal(color, 1, randFloat(0.0f, 0.3f));
 				renderer.addSphere(Sphere(center, 0.2), metal);
 			}
 			else {
@@ -239,5 +238,5 @@ void updateTexture(Renderer& renderer, cudaArray_t* writeTo) {
 
 	cudaSurfaceObject_t write;
 	cudaCreateSurfaceObject(&write, &description);
-	renderer.render(write, QUASI_SAMPLE_N, globalLight);
+	renderer.render(write, camera, QUASI_SAMPLE_N, globalLight);
 }

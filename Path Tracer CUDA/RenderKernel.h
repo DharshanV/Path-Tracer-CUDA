@@ -137,40 +137,19 @@ inline float quasiSample(int n, const int& base = 2) {
 }
 
 __global__
-void renderKernel(glm::vec3* imageData, int samples, int width, int height, Scene scene, curandState* randState, bool globalLight) {
-	int x = threadIdx.x + blockIdx.x * blockDim.x;
-	int y = threadIdx.y + blockIdx.y * blockDim.y;
-	if (x >= width || y >= height) return;
-
-	uint32_t index = x + y * width;
-	Camera* camera = scene.camera;
-    curandState localRandState = randState[index];
-
-    glm::vec3 pixelColor(0.0f);
-    for (int i = 0; i < samples; i++) {
-        float u = ((float)x + quasiSample(samples,2)) / width;
-        float v = ((float)y + quasiSample(samples,3)) / height;
-        pixelColor += castRay(camera->getRay(u, v), &scene, &localRandState,globalLight);
-    }
-    randState[index] = localRandState;
-    imageData[index] = glm::sqrt(pixelColor/ (float)samples);
-}
-
-__global__
-void renderKernel(cudaSurfaceObject_t target, int samples, int width, int height, Scene scene, curandState* randState, bool globalLight) {
+void renderKernel(cudaSurfaceObject_t target,Camera camera, int samples, int width, int height, Scene scene, curandState* randState, bool globalLight) {
     int x = threadIdx.x + blockIdx.x * blockDim.x;
     int y = threadIdx.y + blockIdx.y * blockDim.y;
     if (x >= width || y >= height) return;
 
     uint32_t index = x + y * width;
-    Camera* camera = scene.camera;
     curandState localRandState = randState[index];
 
     glm::vec3 pixelColor(0.0f);
     for (int i = 0; i < samples; i++) {
         float u = ((float)x + quasiSample(samples, 2)) / width;
         float v = ((float)y + quasiSample(samples, 3)) / height;
-        pixelColor += castRay(camera->getRay(u, v), &scene, &localRandState, globalLight);
+        pixelColor += castRay(camera.getRay(u, v), &scene, &localRandState, globalLight);
     }
     randState[index] = localRandState;
     pixelColor = glm::sqrt(pixelColor / (float)samples);
