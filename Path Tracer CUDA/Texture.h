@@ -6,9 +6,9 @@ using namespace std;
 class Texture {
 public:
 	Texture(const float* data, uint32_t width, uint32_t height);
-	inline void bind(unsigned int slot = 0);
+	void bind(unsigned int slot = 0);
 	void load(const float* data);
-	inline void unbind();
+	void unbind();
 	GLuint id();
 	~Texture();
 private:

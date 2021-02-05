@@ -1,7 +1,6 @@
 #pragma once
 #include <glad/glad.h>
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include "Settings.h"
 
 enum Camera_Movement {
@@ -38,10 +37,6 @@ public:
         float deltaY = (-2.0f * y + 1.0f) * tan(90.0f / 2 * PI / 180);
         glm::vec3 rd = glm::normalize(Right * deltaX + Up * deltaY + Front);
         return Ray(Position, rd);
-    }
-
-    glm::mat4 GetViewMatrix() {
-        return glm::lookAt(Position, Position + Front, Up);
     }
 
     void ProcessKeyboard(Camera_Movement direction, float deltaTime) {

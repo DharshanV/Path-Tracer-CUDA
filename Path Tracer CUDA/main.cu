@@ -181,16 +181,16 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	if (firstMouse) {
-		lastX = xpos;
-		lastY = ypos;
+		lastX = (float)xpos;
+		lastY = (float)ypos;
 		firstMouse = false;
 	}
 
-	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos;
+	float xoffset = (float)xpos - lastX;
+	float yoffset = lastY - (float)ypos;
 
-	lastX = xpos;
-	lastY = ypos;
+	lastX = (float)xpos;
+	lastY = (float)ypos;
 
 	camera.ProcessMouseMovement(xoffset, yoffset);
 	samples = SAMPLE_MIN;
@@ -212,14 +212,14 @@ void createScene(Renderer& renderer) {
 			glm::vec3 color = glm::vec3(randFloat(0.1f, 1.0f), randFloat(0.1f, 1.0f), randFloat(0.1f, 1.0f));
 			if (choose_mat < 0.5f) {
 				Material diffuse(color);
-				renderer.addSphere(Sphere(center, 0.2), diffuse);
+				renderer.addSphere(Sphere(center, 0.2f), diffuse);
 			} else if (choose_mat < 1.0f) {
 				Material metal(color, 1, randFloat(0.0f, 0.3f));
-				renderer.addSphere(Sphere(center, 0.2), metal);
+				renderer.addSphere(Sphere(center, 0.2f), metal);
 			}
 			else {
 				Material emissive(color,0,0,0,0,1.0f);
-				renderer.addSphere(Sphere(center, 0.2), emissive);
+				renderer.addSphere(Sphere(center, 0.2f), emissive);
 			}
 		}
 	}
