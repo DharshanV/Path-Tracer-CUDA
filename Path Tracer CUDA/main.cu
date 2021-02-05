@@ -1,6 +1,6 @@
 #include <iostream>
-#include "Renderer.h"
 #include "GLFW.h"
+#include "Renderer.h"
 #include "VertexArray.h"
 #include "ElementBuffer.h"
 #include "Shader.h"
@@ -9,90 +9,23 @@
 using namespace std;
 using namespace glm;
 
-void createScene(Renderer& renderer);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void updateTexture(Renderer& renderer, cudaArray_t* writeTo);
 void processInput(GLFWwindow* window);
+void createScene(Renderer& renderer);
 bool lockFPS(uint32_t FPS);
 
-uint32_t WIDTH = 500;
-uint32_t HEIGHT = 500;
 float lastX = WIDTH / 2.0f;
 float lastY = HEIGHT / 2.0f;
 bool firstMouse = true;
 
 Camera camera;
-Renderer renderer(WIDTH, HEIGHT, camera);
 int samples = SAMPLE_MIN;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 bool globalLight = true;
-
-//GLuint vbo;
-//struct cudaGraphicsResource* cuda_vbo_resource;
-//void* d_vbo_buffer = NULL;
-//
-//void createVBO(GLuint* vbo, struct cudaGraphicsResource** vbo_res,
-//	unsigned int vbo_res_flags) {
-//	assert(vbo);
-//
-//	// create buffer object
-//	glGenBuffers(1, vbo);
-//	glBindBuffer(GL_ARRAY_BUFFER, *vbo);
-//
-//	// initialize buffer object
-//	unsigned int size = mesh_width * mesh_height * 4 * sizeof(float);
-//	glBufferData(GL_ARRAY_BUFFER, size, 0, GL_DYNAMIC_DRAW);
-//
-//	glBindBuffer(GL_ARRAY_BUFFER, 0);
-//
-//	// register this buffer object with CUDA
-//	cudaGraphicsGLRegisterBuffer(vbo_res, *vbo, vbo_res_flags);
-//}
-//
-//void deleteVBO(GLuint* vbo, struct cudaGraphicsResource* vbo_res) {
-//
-//	// unregister this buffer object with CUDA
-//	cudaGraphicsUnregisterResource(vbo_res);
-//
-//	glBindBuffer(1, *vbo);
-//	glDeleteBuffers(1, vbo);
-//
-//	*vbo = 0;
-//}
-//
-//void runCuda(struct cudaGraphicsResource** vbo_resource) {
-//	// map OpenGL buffer object for writing from CUDA
-//	float4* dptr;
-//	cudaGraphicsMapResources(1, vbo_resource, 0);
-//	size_t num_bytes;
-//	cudaGraphicsResourceGetMappedPointer((void**)&dptr, &num_bytes, *vbo_resource);
-//	//printf("CUDA mapped VBO: May access %ld bytes\n", num_bytes);
-//
-//	launch_kernel(dptr, mesh_width, mesh_height, g_fAnim);
-//
-//	// unmap buffer object
-//	cudaGraphicsUnmapResources(1, vbo_resource, 0);
-//}
-//
-//__global__ void simple_vbo_kernel(float4* pos, unsigned int width, unsigned int height, float time) {
-//	unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
-//	unsigned int y = blockIdx.y * blockDim.y + threadIdx.y;
-//
-//	// calculate uv coordinates
-//	float u = x / (float)width;
-//	float v = y / (float)height;
-//	u = u * 2.0f - 1.0f;
-//	v = v * 2.0f - 1.0f;
-//
-//	// calculate simple sine wave pattern
-//	float freq = 4.0f;
-//	float w = sinf(u * freq + time) * cosf(v * freq + time) * 0.5f;
-//
-//	// write output vertex
-//	pos[y * width + x] = make_float4(u, w, v, 1.0f);
-//}
 
 int main() {
 	//==================
@@ -133,25 +66,27 @@ int main() {
 	layout.push<float>(3);
 	layout.push<float>(2);
 	VAO.addBuffer(VBO, layout);
-
-	//create our quad texture
-	vector<vec3> imageTexture(WIDTH * HEIGHT);
-	Texture texture(&imageTexture[0].x, WIDTH, HEIGHT);
 	//==================
+
+	//==================
+	//create quad texture
+	Texture quadTexture(nullptr, WIDTH, HEIGHT);
+
+	//bind OpenGL array to CUDA
+	cudaArray_t texture_ptr;
+	cudaGraphicsResource* cudaResource;
+	cudaGraphicsGLRegisterImage(&cudaResource, quadTexture.id(), GL_TEXTURE_2D, cudaGraphicsRegisterFlagsSurfaceLoadStore);
+	cudaGraphicsMapResources(1, &cudaResource, 0);
+	cudaGraphicsSubResourceGetMappedArray(&texture_ptr, cudaResource, 0, 0);
+	//==================
+
 
 	//==================
 	//Create CUDA Renderer
 	Renderer renderer(WIDTH, HEIGHT, camera);
 	createScene(renderer);
-	renderer.render(&imageTexture[0].x, samples,true);
-	texture.load(&imageTexture[0].x);
 	//=================
 
-
-
-	//Simulation simulation(50,50);
-	//Particles p1(vec3(0.0f, 1.0f, -5.0f), vec3(1,-1,0));
-	//simulation.addParticle(p1);
 
 	//==================
 	//Render our quad
@@ -162,17 +97,16 @@ int main() {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		if (lockFPS(40)) {
+		if (lockFPS(50)) {
 			window.clear();
 
 			renderer.updateCamera(camera);
-			renderer.render(&imageTexture[0].x, QUASI_SAMPLE_N,globalLight);
-			texture.load(&imageTexture[0].x);
+			updateTexture(renderer, &texture_ptr);
 
 			VAO.bind();
-			texture.bind();
+			quadTexture.bind();
 			glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, 0);
-			texture.unbind();
+			quadTexture.unbind();
 			VAO.unbind();
 		}
 
@@ -238,7 +172,7 @@ void processInput(GLFWwindow* window) {
 
 	if (hasInput) {
 		camera.ProcessKeyboard(movement, deltaTime);
-		//samples = SAMPLE_MIN;
+		samples = SAMPLE_MIN;
 	}
 
 }
@@ -260,7 +194,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	lastY = ypos;
 
 	camera.ProcessMouseMovement(xoffset, yoffset);
-	//samples = SAMPLE_MIN;
+	samples = SAMPLE_MIN;
 }
 
 float randFloat(float a, float b) {
@@ -295,4 +229,15 @@ void createScene(Renderer& renderer) {
 
 	Material planeMat(vec3(0.6f),1,0.1f);
 	renderer.addPlane(Plane(vec3(0.0f, 0.0f, -5.0f), vec3(0, 1, 0), 20, 20), planeMat);
+}
+
+void updateTexture(Renderer& renderer, cudaArray_t* writeTo) {
+	struct cudaResourceDesc description;
+	memset(&description, 0, sizeof(description));
+	description.resType = cudaResourceTypeArray;
+	description.res.array.array = *writeTo;
+
+	cudaSurfaceObject_t write;
+	cudaCreateSurfaceObject(&write, &description);
+	renderer.render(write, QUASI_SAMPLE_N, globalLight);
 }

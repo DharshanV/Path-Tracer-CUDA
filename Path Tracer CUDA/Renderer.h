@@ -3,7 +3,6 @@
 #include <chrono>
 #include <sstream>
 #include <fstream>
-
 #include "RenderKernel.h"
 #include "CUDAHeaders.h"
 
@@ -63,6 +62,16 @@ public:
 		elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
 		writeToImage(imageTexture);
+	}
+
+	void render(cudaSurfaceObject_t surfaceObj, int samples, bool globalLight) {
+		commit();
+
+		auto start = std::chrono::steady_clock::now();
+		renderKernel KERNEL_ARG2(numOfBlocks, threadsPerBlock)(surfaceObj, samples, width, height, scene, dRandState, globalLight);
+		cudaDeviceSynchronize();
+		auto end = std::chrono::steady_clock::now();
+		elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 	}
 
 	size_t getElapsed() { return elapsed; }

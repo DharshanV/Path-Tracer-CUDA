@@ -2,6 +2,9 @@
 #include <glm/glm.hpp>
 #include <cuda_runtime.h>
 #include <curand.h>
+#include <cuda_gl_interop.h>
+#include <surface_functions.h>
+
 #include <curand_kernel.h>
 #include "CUDAIntersections.h"
 #include "Settings.h"
@@ -152,6 +155,29 @@ void renderKernel(glm::vec3* imageData, int samples, int width, int height, Scen
     randState[index] = localRandState;
     imageData[index] = glm::sqrt(pixelColor/ (float)samples);
 }
+
+__global__
+void renderKernel(cudaSurfaceObject_t target, int samples, int width, int height, Scene scene, curandState* randState, bool globalLight) {
+    int x = threadIdx.x + blockIdx.x * blockDim.x;
+    int y = threadIdx.y + blockIdx.y * blockDim.y;
+    if (x >= width || y >= height) return;
+
+    uint32_t index = x + y * width;
+    Camera* camera = scene.camera;
+    curandState localRandState = randState[index];
+
+    glm::vec3 pixelColor(0.0f);
+    for (int i = 0; i < samples; i++) {
+        float u = ((float)x + quasiSample(samples, 2)) / width;
+        float v = ((float)y + quasiSample(samples, 3)) / height;
+        pixelColor += castRay(camera->getRay(u, v), &scene, &localRandState, globalLight);
+    }
+    randState[index] = localRandState;
+    pixelColor = glm::sqrt(pixelColor / (float)samples);
+    float4 data = make_float4(pixelColor.x, pixelColor.y, pixelColor.z, 1.0f);
+    surf2Dwrite(data, target, (int)sizeof(float4) * x, y, cudaBoundaryModeClamp);
+}
+
 
 __global__
 void renderInit(int width, int height, curandState* randState) {

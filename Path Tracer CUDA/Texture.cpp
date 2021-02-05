@@ -12,10 +12,7 @@ Texture::Texture(const float* data, uint32_t width, uint32_t height) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	if (data != nullptr) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_FLOAT, data);
-	}
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGB, GL_FLOAT, data);
 }
 
 void Texture::bind(unsigned int slot) {
@@ -34,6 +31,10 @@ void Texture::load(const float* data) {
 void Texture::unbind() {
 	glActiveTexture(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+GLuint Texture::id() {
+	return textureID;
 }
 
 Texture::~Texture() {

@@ -133,9 +133,6 @@
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="glad.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GLFW.cpp">
       <Filter>Header Files\OpenGL\GLFW</Filter>
     </ClCompile>
@@ -153,6 +150,9 @@
     </ClCompile>
     <ClCompile Include="VertexBuffer.cpp">
       <Filter>Header Files\OpenGL\Vertex Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="glad.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
