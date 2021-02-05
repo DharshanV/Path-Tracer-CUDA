@@ -73,11 +73,11 @@ int main() {
 	Texture quadTexture(nullptr, WIDTH, HEIGHT);
 
 	//bind OpenGL array to CUDA
-	cudaArray_t texture_ptr;
+	cudaArray_t texturePtr;
 	cudaGraphicsResource* cudaResource;
 	cudaGraphicsGLRegisterImage(&cudaResource, quadTexture.id(), GL_TEXTURE_2D, cudaGraphicsRegisterFlagsSurfaceLoadStore);
 	cudaGraphicsMapResources(1, &cudaResource, 0);
-	cudaGraphicsSubResourceGetMappedArray(&texture_ptr, cudaResource, 0, 0);
+	cudaGraphicsSubResourceGetMappedArray(&texturePtr, cudaResource, 0, 0);
 	//==================
 
 
@@ -97,11 +97,11 @@ int main() {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		if (lockFPS(50)) {
+		if (lockFPS(60)) {
 			window.clear();
 
 			renderer.updateCamera(camera);
-			updateTexture(renderer, &texture_ptr);
+			updateTexture(renderer, &texturePtr);
 
 			VAO.bind();
 			quadTexture.bind();
