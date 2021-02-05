@@ -87,32 +87,54 @@ bool scatter(const Ray& ray, const IntersectInfo& rec, glm::vec3& attenuation, R
 }
 
 __device__
-glm::vec3 castRay(const Ray& ray, Scene* scene, curandState* localRandState) {
+glm::vec3 castRay(const Ray& ray, Scene* scene, curandState* localRandState, bool globalLight) {
     Ray curRay = ray;
-    glm::vec3 cur_attenuation(1.0f);
-    for (int i = 0; i < MAX_DEPTH; i++) {
+    glm::vec3 color(0.0f);
+    glm::vec3 attenuation(1.0f);
+
+    for (int bounces = 0; bounces < MAX_DEPTH; ++bounces) {
         IntersectInfo hit;
-        if (sceneIntersect(scene, curRay, hit)) {
+        if (!sceneIntersect(scene, curRay, hit)) {
+            if (globalLight) return color + attenuation * glm::vec3(0.8f);
+            else return glm::vec3(0.0f);
+        }
+
+        Material& material = hit.hitMaterial;
+        if (material.emittance == 0.0f) {
             Ray scattered(glm::vec3(0), glm::vec3(0));
-            glm::vec3 attenuation;
-            if (scatter(curRay, hit, attenuation, scattered, localRandState)) {
-                cur_attenuation *= attenuation;
+            glm::vec3 scattedAttenuation;
+            if (scatter(curRay, hit, scattedAttenuation, scattered, localRandState)) {
+                attenuation *= scattedAttenuation;
                 curRay = scattered;
+
+                //Russian Roulette termination
+                float p = glm::max(attenuation.x, glm::max(attenuation.y, attenuation.z));
+                if (curand_uniform(localRandState) > p) { break; }
+                attenuation *= 1 / p;
             } else {
                 return glm::vec3(0.0f);
             }
-        } else {
-            glm::vec3 unit_direction = glm::normalize(curRay.dir);
-            float t = 0.5f * (unit_direction.y + 1.0f);
-            glm::vec3 c = (1.0f - t) * glm::vec3(1.0f) + t * glm::vec3(0.3f);
-            return cur_attenuation * c;
+        }
+        else {
+            color += attenuation * material.color;
         }
     }
-    return glm::vec3(0.0f);
+    return color;
+}
+
+__device__
+inline float quasiSample(int n, const int& base = 2) {
+    float rand = 0, denom = 1, invBase = 1.f / base;
+    while (n) {
+        denom *= base;
+        rand += (n % base) / denom;
+        n *= invBase;
+    }
+    return rand;
 }
 
 __global__
-void renderKernel(glm::vec3* imageData, int samples, int width, int height, Scene scene, curandState* randState) {
+void renderKernel(glm::vec3* imageData, int samples, int width, int height, Scene scene, curandState* randState, bool globalLight) {
 	int x = threadIdx.x + blockIdx.x * blockDim.x;
 	int y = threadIdx.y + blockIdx.y * blockDim.y;
 	if (x >= width || y >= height) return;
@@ -123,9 +145,9 @@ void renderKernel(glm::vec3* imageData, int samples, int width, int height, Scen
 
     glm::vec3 pixelColor(0.0f);
     for (int i = 0; i < samples; i++) {
-        float u = ((float)x + curand_uniform(&localRandState)) / width;
-        float v = ((float)y + curand_uniform(&localRandState)) / height;
-        pixelColor += castRay(camera->getRay(u, v), &scene, &localRandState);
+        float u = ((float)x + quasiSample(samples,2)) / width;
+        float v = ((float)y + quasiSample(samples,3)) / height;
+        pixelColor += castRay(camera->getRay(u, v), &scene, &localRandState,globalLight);
     }
     randState[index] = localRandState;
     imageData[index] = glm::sqrt(pixelColor/ (float)samples);

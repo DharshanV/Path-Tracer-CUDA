@@ -53,22 +53,11 @@ public:
 		lights.push_back(l);
 	}
 
-	void render(const char* fileName,int samples) {
+	void render(float* imageTexture,int samples,bool globalLight) {
 		commit();
 
 		auto start = std::chrono::steady_clock::now();
-		renderKernel KERNEL_ARG2(numOfBlocks, threadsPerBlock)(dImageData, samples, width, height, scene, dRandState);
-		cudaDeviceSynchronize();
-		auto end = std::chrono::steady_clock::now();
-		elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-		writeToFile(fileName);
-	}
-
-	void render(float* imageTexture,int samples) {
-		commit();
-
-		auto start = std::chrono::steady_clock::now();
-		renderKernel KERNEL_ARG2(numOfBlocks, threadsPerBlock)(dImageData, samples, width, height, scene, dRandState);
+		renderKernel KERNEL_ARG2(numOfBlocks, threadsPerBlock)(dImageData, samples, width, height, scene, dRandState, globalLight);
 		cudaDeviceSynchronize();
 		auto end = std::chrono::steady_clock::now();
 		elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
@@ -98,28 +87,6 @@ private:
 		cudaMemcpy(scene.planes, &planes[0], planes.size() * sizeof(Plane), cudaMemcpyHostToDevice);
 		cudaMemcpy(scene.materials, &materials[0], materials.size() * sizeof(Material), cudaMemcpyHostToDevice);
 		commited = true;
-	}
-
-	void writeToFile(const char* fileName) {
-		glm::vec3* imageData = new glm::vec3[width * height];
-		cudaMemcpy(imageData, dImageData, width * height * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
-
-		if (imageData == nullptr)return;
-		std::stringstream ss;
-		ss << "P3\n" << width << ' ' << height << " 255\n";
-		for (int j = 0; j < height; ++j) {
-			for (int i = 0; i < width; ++i) {
-				glm::vec3 pixel = imageData[i + j * width] * 255.0f;
-				int r = (int)clamp(pixel[0], 0, 255);
-				int g = (int)clamp(pixel[1], 0, 255);
-				int b = (int)clamp(pixel[2], 0, 255);
-				ss << r << ' ' << g << ' ' << b << '\n';
-			}
-		}
-		std::ofstream out(fileName);
-		out << ss.rdbuf();
-		out.close();
-		delete[] imageData;
 	}
 
 	void writeToImage(float* imageTexture) {

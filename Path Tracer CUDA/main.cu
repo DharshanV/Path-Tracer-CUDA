@@ -27,6 +27,7 @@ int samples = SAMPLE_MIN;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+bool globalLight = true;
 
 //GLuint vbo;
 //struct cudaGraphicsResource* cuda_vbo_resource;
@@ -142,7 +143,7 @@ int main() {
 	//Create CUDA Renderer
 	Renderer renderer(WIDTH, HEIGHT, camera);
 	createScene(renderer);
-	renderer.render(&imageTexture[0].x, samples);
+	renderer.render(&imageTexture[0].x, samples,true);
 	texture.load(&imageTexture[0].x);
 	//=================
 
@@ -165,7 +166,7 @@ int main() {
 			window.clear();
 
 			renderer.updateCamera(camera);
-			renderer.render(&imageTexture[0].x, 50);
+			renderer.render(&imageTexture[0].x, QUASI_SAMPLE_N,globalLight);
 			texture.load(&imageTexture[0].x);
 
 			VAO.bind();
@@ -228,6 +229,12 @@ void processInput(GLFWwindow* window) {
 		movement = UP;
 		hasInput = true;
 	}
+	if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
+		globalLight = true;
+	}
+	if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
+		globalLight = false;
+	}
 
 	if (hasInput) {
 		camera.ProcessKeyboard(movement, deltaTime);
@@ -267,7 +274,7 @@ void createScene(Renderer& renderer) {
 	int temp = 4;
 	for (int a = -temp; a < temp; a++) {
 		for (int b = -temp; b < temp; b++) {
-			float choose_mat = randFloat(0,1.0f);
+			float choose_mat = randFloat(0,1.1f);
 			vec3 center(a + randFloat(0, 1.0f), 0.2, b + randFloat(0, 1.0f));
 			glm::vec3 color = glm::vec3(randFloat(0.1f, 1.0f), randFloat(0.1f, 1.0f), randFloat(0.1f, 1.0f));
 			if (choose_mat < 0.5f) {
@@ -276,6 +283,10 @@ void createScene(Renderer& renderer) {
 			} else if (choose_mat < 1.0f) {
 				Material metal(color, 1, randFloat(0.1f, 0.5f));
 				renderer.addSphere(Sphere(center, 0.2), metal);
+			}
+			else {
+				Material emissive(color,0,0,0,0,1.0f);
+				renderer.addSphere(Sphere(center, 0.2), emissive);
 			}
 		}
 	}
