@@ -30,7 +30,7 @@ bool globalLight = true;
 int main() {
 	//==================
 	//Setup GLFW and OpenGL
-	GLFW window(WIDTH, HEIGHT, "Test Application");
+	GLFW window(WIDTH, HEIGHT, "Path Tracer");
 
 	if (!window.isGood()) { glfwTerminate(); return EXIT_FAILURE; }
 	window.setClearColor({ 0,0,0,1.0f });
