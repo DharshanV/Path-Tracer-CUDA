@@ -74,12 +74,6 @@ bool scatter(const Ray& ray, const IntersectInfo& rec, glm::vec3& attenuation, R
             scattered = Ray(rec.hitPoint, refracted);
         return true;
     }
-    else if (mat.emittance > 0.0f) {
-        glm::vec3 target = rec.hitPoint + rec.N + randomInHemisphere(local_rand_state);
-        attenuation *= mat.color * mat.emittance;
-        scattered = Ray(rec.hitPoint, target - rec.hitPoint);
-        return true;
-    }
     else {
         glm::vec3 target = rec.hitPoint + rec.N + randomInHemisphere(local_rand_state);
         scattered = Ray(rec.hitPoint, target - rec.hitPoint);
@@ -92,34 +86,23 @@ bool scatter(const Ray& ray, const IntersectInfo& rec, glm::vec3& attenuation, R
 __device__
 glm::vec3 castRay(const Ray& ray, Scene* scene, curandState* localRandState, bool globalLight) {
     Ray curRay = ray;
-    glm::vec3 color(0.0f);
-    glm::vec3 attenuation(1.0f);
+    IntersectInfo hit;
+    glm::vec3 color(1.0f);
 
     for (int bounces = 0; bounces < MAX_DEPTH; ++bounces) {
-        IntersectInfo hit;
         if (!sceneIntersect(scene, curRay, hit)) {
-            if (globalLight) return color + attenuation * glm::vec3(0.8f);
+            if (globalLight) return color * glm::vec3(0.3f);
             else return glm::vec3(0.0f);
         }
 
-        Material& material = hit.hitMaterial;
-        if (material.emittance == 0.0f) {
-            Ray scattered(glm::vec3(0), glm::vec3(0));
-            glm::vec3 scattedAttenuation;
-            if (scatter(curRay, hit, scattedAttenuation, scattered, localRandState)) {
-                attenuation *= scattedAttenuation;
-                curRay = scattered;
+        Material& mat = hit.hitMaterial;
+        if (mat.isEmittance) { return mat.color; }
 
-                //Russian Roulette termination
-                float p = glm::max(attenuation.x, glm::max(attenuation.y, attenuation.z));
-                if (curand_uniform(localRandState) > p) { break; }
-                attenuation *= 1 / p;
-            } else {
-                return glm::vec3(0.0f);
-            }
-        }
-        else {
-            color += attenuation * material.color;
+        glm::vec3 scatteredColor;
+        Ray scatteredRay(glm::vec3(0), glm::vec3(0));
+        if (scatter(curRay, hit, scatteredColor, scatteredRay, localRandState)) {
+            color *= scatteredColor;
+            curRay = scatteredRay;
         }
     }
     return color;
@@ -137,7 +120,7 @@ inline float quasiSample(int n, const int& base = 2) {
 }
 
 __global__
-void renderKernel(cudaSurfaceObject_t target,Camera camera, int samples, int width, int height, Scene scene, curandState* randState, bool globalLight) {
+void renderKernel(cudaSurfaceObject_t target, Camera camera, int samples, int width, int height, Scene scene, curandState* randState, bool globalLight) {
     int x = threadIdx.x + blockIdx.x * blockDim.x;
     int y = threadIdx.y + blockIdx.y * blockDim.y;
     if (x >= width || y >= height) return;
@@ -153,7 +136,7 @@ void renderKernel(cudaSurfaceObject_t target,Camera camera, int samples, int wid
     }
     randState[index] = localRandState;
     pixelColor = glm::sqrt(pixelColor / (float)samples);
-    float4 data = make_float4(pixelColor.x, pixelColor.y, pixelColor.z, 1.0f);
+    float4 data = float4({ pixelColor.x, pixelColor.y, pixelColor.z, 1.0f });
     surf2Dwrite(data, target, (int)sizeof(float4) * x, y, cudaBoundaryModeClamp);
 }
 

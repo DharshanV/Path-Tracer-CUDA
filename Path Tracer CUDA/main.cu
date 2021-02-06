@@ -28,6 +28,7 @@ float lastFrame = 0.0f;
 bool globalLight = true;
 
 int main() {
+	srand(time(0));
 	//==================
 	//Setup GLFW and OpenGL
 	GLFW window(WIDTH, HEIGHT, "Path Tracer");
@@ -218,7 +219,7 @@ void createScene(Renderer& renderer) {
 				renderer.addSphere(Sphere(center, 0.2f), metal);
 			}
 			else {
-				Material emissive(color,0,0,0,0,1.0f);
+				Material emissive(color,0,0,0,0,1);
 				renderer.addSphere(Sphere(center, 0.2f), emissive);
 			}
 		}
@@ -228,6 +229,8 @@ void createScene(Renderer& renderer) {
 
 	Material planeMat(vec3(0.6f),1,0.1f);
 	renderer.addPlane(Plane(vec3(0.0f, 0.0f, -5.0f), vec3(0, 1, 0), 20, 20), planeMat);
+
+	renderer.addLight(Light(vec3(0),1.0f));
 }
 
 void updateTexture(Renderer& renderer, cudaArray_t* writeTo) {

@@ -5,18 +5,19 @@
 struct Material {
 	__host__ __device__
 	Material(glm::vec3 color = glm::vec3(1.0f),
-			float isReflective = 0, float reflection = 0,
-			float isRefractive = 0, float indexOfRefraction = 0,float emittance = 0) : color(color),
+			bool isReflective = 0, float reflection = 0,
+			bool isRefractive = 0, float indexOfRefraction = 0,bool isEmittance = 0) : color(color),
 		isReflective(isReflective), reflection(reflection),
 		isRefractive(isRefractive), indexOfRefraction(indexOfRefraction),
-		emittance(emittance) {
+		isEmittance(isEmittance) {
 	}
 
 	glm::vec3 color;
-	float isReflective;
+	bool isReflective;
+	bool isRefractive;
+	bool isEmittance;
+
 	float reflection;
-	float isRefractive;
 	float indexOfRefraction;
-	float emittance;
 	//float translucence;
 };
