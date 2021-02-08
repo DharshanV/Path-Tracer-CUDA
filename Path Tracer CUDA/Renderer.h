@@ -69,22 +69,36 @@ public:
 private:
 	void commit() {
 		if (commited) return;
-		cudaMalloc(&scene.lights, lights.size() * sizeof(Light));
-		cudaMalloc(&scene.spheres, spheres.size() * sizeof(Sphere));
-		cudaMalloc(&scene.planes, planes.size() * sizeof(Plane));
-		cudaMalloc(&scene.materials, materials.size() * sizeof(Material));
-		cudaMalloc(&scene.triangles, triangles.size() * sizeof(Triangle));
 
 		scene.numSpheres = (int)spheres.size();
 		scene.numLights = (int)lights.size();
 		scene.numPlanes = (int)planes.size();
 		scene.numTriangles = (int)triangles.size();
 
-		cudaMemcpy(scene.lights, &lights[0], lights.size() * sizeof(Light), cudaMemcpyHostToDevice);
-		cudaMemcpy(scene.spheres, &spheres[0], spheres.size() * sizeof(Sphere), cudaMemcpyHostToDevice);
-		cudaMemcpy(scene.planes, &planes[0], planes.size() * sizeof(Plane), cudaMemcpyHostToDevice);
-		cudaMemcpy(scene.materials, &materials[0], materials.size() * sizeof(Material), cudaMemcpyHostToDevice);
-		cudaMemcpy(scene.triangles, &triangles[0], triangles.size() * sizeof(Triangle), cudaMemcpyHostToDevice);
+		for (int i = 0; i < scene.numSpheres; i++) {
+			cudaMalloc(&scene.spheres, spheres.size() * sizeof(Sphere));
+			cudaMemcpy(scene.spheres, &spheres[0], spheres.size() * sizeof(Sphere), cudaMemcpyHostToDevice);
+		}
+
+		for (int i = 0; i < scene.numLights; i++) {
+			cudaMalloc(&scene.lights, lights.size() * sizeof(Light));
+			cudaMemcpy(scene.lights, &lights[0], lights.size() * sizeof(Light), cudaMemcpyHostToDevice);
+		}
+
+		for (int i = 0; i < scene.numPlanes; i++) {
+			cudaMalloc(&scene.planes, planes.size() * sizeof(Plane));
+			cudaMemcpy(scene.planes, &planes[0], planes.size() * sizeof(Plane), cudaMemcpyHostToDevice);
+		}
+
+		for (int i = 0; i < scene.numTriangles; i++) {
+			cudaMalloc(&scene.triangles, triangles.size() * sizeof(Triangle));
+			cudaMemcpy(scene.triangles, &triangles[0], triangles.size() * sizeof(Triangle), cudaMemcpyHostToDevice);
+		}
+
+		if (materials.size() != 0) {
+			cudaMalloc(&scene.materials, materials.size() * sizeof(Material));
+			cudaMemcpy(scene.materials, &materials[0], materials.size() * sizeof(Material), cudaMemcpyHostToDevice);
+		}
 
 		lights.clear();
 		spheres.clear();

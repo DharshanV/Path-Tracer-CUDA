@@ -22,11 +22,11 @@ bool sphereIntersection(const Ray& ray,const Sphere& sphere, float& t) {
             t = temp;
             return true;
         }
-        temp = (-b + glm::sqrt(discriminant)) / a;
-        if (temp < FLT_MAX && temp > EPSILON) {
-            t = temp;
-            return true;
-        }
+        //temp = (-b + glm::sqrt(discriminant)) / a;
+        //if (temp < FLT_MAX && temp > EPSILON) {
+        //    t = temp;
+        //    return false;
+        //}
     }
     return false;
 }
@@ -34,7 +34,7 @@ bool sphereIntersection(const Ray& ray,const Sphere& sphere, float& t) {
 __device__
 bool planeIntersetion(const Ray& ray, const Plane& plane, float& t) {
     float denom = glm::dot(ray.dir, plane.N);
-    if (fabs(denom) > EPSILON) {
+    if (-denom > EPSILON) {
         t = (glm::dot(plane.pos - ray.origin, plane.N)) / denom;
         return t >= EPSILON;
     }
@@ -52,7 +52,7 @@ bool triangleIntersetion(const Ray& ray, const Triangle& triangle, float& t) {
     edge2 = v2 - v0;
     h = glm::cross(ray.dir, edge2);
     a = glm::dot(edge1, h);
-    if (a > -EPSILON && a < EPSILON)
+    if (a < EPSILON)
         return false;
     f = 1.0f / a;
     s = ray.origin - v0;

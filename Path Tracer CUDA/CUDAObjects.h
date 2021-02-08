@@ -67,9 +67,7 @@ typedef struct Model {
         auto& shapes = reader.GetShapes();
         auto& materials = reader.GetMaterials();
 
-        // Loop over shapes
         for (size_t s = 0; s < shapes.size(); s++) {
-            // Loop over faces(polygon)
             size_t index_offset = 0;
             for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
                 int fv = shapes[s].mesh.num_face_vertices[f];
@@ -79,26 +77,33 @@ typedef struct Model {
                 }
 
                 Triangle triangle;
-                // Loop over vertices in the face.
                 for (size_t v = 0; v < fv; v++) {
-                    // access to vertex
                     tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
-                    tinyobj::real_t vx = attrib.vertices[3 * idx.vertex_index + 0];
-                    tinyobj::real_t vy = attrib.vertices[3 * idx.vertex_index + 1];
-                    tinyobj::real_t vz = attrib.vertices[3 * idx.vertex_index + 2];
-                    tinyobj::real_t nx = attrib.normals[3 * idx.normal_index + 0];
-                    tinyobj::real_t ny = attrib.normals[3 * idx.normal_index + 1];
-                    tinyobj::real_t nz = attrib.normals[3 * idx.normal_index + 2];
-                    tinyobj::real_t tx = attrib.texcoords[2 * idx.texcoord_index + 0];
-                    tinyobj::real_t ty = attrib.texcoords[2 * idx.texcoord_index + 1];
-                    tinyobj::real_t r = attrib.colors[3*idx.vertex_index+0];
-                    tinyobj::real_t g = attrib.colors[3*idx.vertex_index+1];
-                    tinyobj::real_t b = attrib.colors[3*idx.vertex_index+2];
 
-                    triangle.vertices[v].position = glm::vec3(vx, vy, vz);
-                    triangle.vertices[v].normals = glm::vec3(nx, ny, ny);
-                    triangle.vertices[v].color = glm::vec3(r, g, b);
-                    triangle.vertices[v].texture = glm::vec2(tx, ty);
+                    glm::vec3 pos(0.0f);
+                    glm::vec3 norm(0.0f);
+                    glm::vec2 tex(0.0f);
+
+                    if (3 * idx.vertex_index < attrib.vertices.size()) {
+                        pos[0] = attrib.vertices[3 * idx.vertex_index + 0];
+                        pos[1] = attrib.vertices[3 * idx.vertex_index + 1];
+                        pos[2] = attrib.vertices[3 * idx.vertex_index + 2];
+                    }
+
+                    if (3 * idx.normal_index < attrib.normals.size()) {
+                        norm[0] = attrib.normals[3 * idx.normal_index + 0];
+                        norm[1] = attrib.normals[3 * idx.normal_index + 1];
+                        norm[2] = attrib.normals[3 * idx.normal_index + 2];
+                    }
+
+                    if (2 * idx.texcoord_index < attrib.texcoords.size()) {
+                        tex[0] = attrib.texcoords[2 * idx.texcoord_index + 0];
+                        tex[1] = attrib.texcoords[2 * idx.texcoord_index + 1];
+                    }
+
+                    triangle.vertices[v].position = pos;
+                    triangle.vertices[v].normals = norm;
+                    triangle.vertices[v].texture = tex;
                 }
                 index_offset += fv;
                 shapes[s].mesh.material_ids[f];

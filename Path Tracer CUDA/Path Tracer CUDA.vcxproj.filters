@@ -179,5 +179,8 @@
     <Object Include="cube.obj">
       <Filter>Resource Files\Models</Filter>
     </Object>
+    <Object Include="Objects\bunny.obj">
+      <Filter>Resource Files\Models</Filter>
+    </Object>
   </ItemGroup>
 </Project>

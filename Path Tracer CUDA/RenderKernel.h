@@ -91,7 +91,12 @@ glm::vec3 castRay(const Ray& ray, Scene* scene, curandState* localRandState, boo
 
     for (int bounces = 0; bounces < MAX_DEPTH; ++bounces) {
         if (!sceneIntersect(scene, curRay, hit)) {
-            if (globalLight) return color * glm::vec3(0.3f);
+            if (globalLight) {
+                glm::vec3 unit_direction = glm::normalize(curRay.dir);
+                float t = 0.5f * (unit_direction.y + 1.0f);
+                glm::vec3 c = (1.0f - t) * glm::vec3(1.0, 1.0, 1.0) + t * glm::vec3(0.5, 0.7, 1.0);
+                return color * c;
+            }
             else return glm::vec3(0.0f);
         }
 

@@ -203,11 +203,11 @@ float randFloat(float a, float b) {
 }
 
 void createScene(Renderer& renderer) {
-	int temp = 4;
+	int temp = 3;
 	for (int a = -temp; a < temp; a++) {
 		for (int b = -temp; b < temp; b++) {
-			float choose_mat = randFloat(0,1.1f);
-			vec3 center(a + randFloat(0, 1.0f), 0.2, b + randFloat(0, 1.0f));
+			float choose_mat = randFloat(0, 1.1f);
+			vec3 center(a + randFloat(0, 1.0f), 0.201f, b + randFloat(0, 1.0f));
 			glm::vec3 color = glm::vec3(randFloat(0.1f, 1.0f), randFloat(0.1f, 1.0f), randFloat(0.1f, 1.0f));
 			if (choose_mat < 0.5f) {
 				Material diffuse(color);
@@ -215,26 +215,45 @@ void createScene(Renderer& renderer) {
 			} else if (choose_mat < 1.0f) {
 				Material metal(color, 1, randFloat(0.0f, 0.3f));
 				renderer.addSphere(Sphere(center, 0.2f), metal);
-			}
-			else {
-				Material emissive(color,0,0,0,0,1);
+			} else {
+				Material emissive(color, 0, 0, 0, 0, 1);
 				renderer.addSphere(Sphere(center, 0.2f), emissive);
 			}
 		}
 	}
-	//Material dielect(glm::vec3(0), 0, 0, 1, 1.5f);
-	//renderer.addSphere(Sphere(glm::vec3(0, 1, -0.5f), 0.5), dielect);
+	Material dielect(glm::vec3(0), 0, 0, 1, 1.5f);
+	renderer.addSphere(Sphere(glm::vec3(0, 1, -0.5f), 0.5), dielect);
 
 	Material planeMat(vec3(0.6f),1,0.1f);
 	renderer.addPlane(Plane(vec3(0.0f, 0.0f, -5.0f), vec3(0, 1, 0)), planeMat);
 
 	renderer.addLight(Light(vec3(0),1.0f));
 
-	Model cudeModel("cube.obj");
-	glm::mat4 matrix(1.0f);
-	matrix = glm::translate(matrix, glm::vec3(0.0f, 1.0f, 0.0f));
-	cudeModel.transform(matrix);
-	renderer.addModel(cudeModel, Material(vec3(0.3f)));
+	vec3 scale(0.2f);
+	{
+		Model tree("Objects/tree.obj");
+		glm::mat4 matrix(1.0f);
+		matrix = glm::translate(matrix, glm::vec3(-4.0f, 0, 0));
+		matrix = glm::scale(matrix, scale);
+		tree.transform(matrix);
+		renderer.addModel(tree, Material(vec3(0,0,1.0f)));
+	}
+	{
+		Model tree("Objects/tree.obj");
+		glm::mat4 matrix(1.0f);
+		matrix = glm::translate(matrix, glm::vec3(0.0f,0.0f, -4.0f));
+		matrix = glm::scale(matrix, scale);
+		tree.transform(matrix);
+		renderer.addModel(tree, Material(vec3(0,1.0f,0)));
+	}
+	{
+		Model tree("Objects/tree.obj");
+		glm::mat4 matrix(1.0f);
+		matrix = glm::translate(matrix, glm::vec3(4.0f, 0, 0));
+		matrix = glm::scale(matrix, scale);
+		tree.transform(matrix);
+		renderer.addModel(tree, Material(vec3(1.0f,0,0)));
+	}
 }
 
 void updateTexture(Renderer& renderer, cudaArray_t* writeTo) {
