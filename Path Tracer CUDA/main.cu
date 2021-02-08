@@ -48,10 +48,10 @@ int main() {
 
 	float vertices[] = {
 		// positions         // texture coords
-		 1.0f,  1.0f, 0.0f,  1.0f, 0.0f,   // top right
-		 1.0f, -1.0f, 0.0f,  1.0f, 1.0f,   // bottom right
-		-1.0f, -1.0f, 0.0f,  0.0f, 1.0f,   // bottom left
-		-1.0f,  1.0f, 0.0f,  0.0f, 0.0f    // top left 
+		 1.0f,  1.0f, 0.0f,  0.0f, 0.0f,   // top right
+		 1.0f, -1.0f, 0.0f,  0.0f, 1.0f,   // bottom right
+		-1.0f, -1.0f, 0.0f,  1.0f, 1.0f,   // bottom left
+		-1.0f,  1.0f, 0.0f,  1.0f, 0.0f    // top left 
 	};
 	unsigned int indices[] = {
 		0, 1, 3,  // first Triangle
@@ -98,17 +98,15 @@ int main() {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		if (lockFPS(60)) {
-			window.clear();
+		window.clear();
 
-			updateTexture(renderer, &texturePtr);
+		updateTexture(renderer, &texturePtr);
 
-			VAO.bind();
-			quadTexture.bind();
-			glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, 0);
-			quadTexture.unbind();
-			VAO.unbind();
-		}
+		VAO.bind();
+		quadTexture.bind();
+		glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, 0);
+		quadTexture.unbind();
+		VAO.unbind();
 
 		window.swapBuffers();
 		window.getEvents();
@@ -224,13 +222,19 @@ void createScene(Renderer& renderer) {
 			}
 		}
 	}
-	Material dielect(glm::vec3(0), 0, 0, 1, 1.5f);
-	renderer.addSphere(Sphere(glm::vec3(0, 1, -0.5f), 0.5), dielect);
+	//Material dielect(glm::vec3(0), 0, 0, 1, 1.5f);
+	//renderer.addSphere(Sphere(glm::vec3(0, 1, -0.5f), 0.5), dielect);
 
 	Material planeMat(vec3(0.6f),1,0.1f);
-	renderer.addPlane(Plane(vec3(0.0f, 0.0f, -5.0f), vec3(0, 1, 0), 20, 20), planeMat);
+	renderer.addPlane(Plane(vec3(0.0f, 0.0f, -5.0f), vec3(0, 1, 0)), planeMat);
 
 	renderer.addLight(Light(vec3(0),1.0f));
+
+	Model cudeModel("cube.obj");
+	glm::mat4 matrix(1.0f);
+	matrix = glm::translate(matrix, glm::vec3(0.0f, 1.0f, 0.0f));
+	cudeModel.transform(matrix);
+	renderer.addModel(cudeModel, Material(vec3(0.3f)));
 }
 
 void updateTexture(Renderer& renderer, cudaArray_t* writeTo) {

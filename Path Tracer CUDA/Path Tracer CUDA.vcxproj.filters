@@ -58,6 +58,12 @@
     <Filter Include="Header Files\Simulation\Particles">
       <UniqueIdentifier>{ee148dbc-9ebf-4fc0-b45c-0ff6f644f74f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Models">
+      <UniqueIdentifier>{7ae3283d-c410-409f-8ae9-6a81d28f2f9f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Objects\Obj Loader">
+      <UniqueIdentifier>{b160f1f8-7b7e-4ca5-a710-f34317d23ae6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RenderKernel.h">
@@ -126,6 +132,9 @@
     <ClInclude Include="Simulation.h">
       <Filter>Header Files\Simulation</Filter>
     </ClInclude>
+    <ClInclude Include="ObjLoader.h">
+      <Filter>Header Files\Objects\Obj Loader</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="main.cu">
@@ -154,6 +163,9 @@
     <ClCompile Include="glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ObjLoader.cpp">
+      <Filter>Header Files\Objects\Obj Loader</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="QuadShader.frag">
@@ -162,5 +174,10 @@
     <None Include="QuadShader.vert">
       <Filter>Header Files\OpenGL\Shaders\Source</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="cube.obj">
+      <Filter>Resource Files\Models</Filter>
+    </Object>
   </ItemGroup>
 </Project>

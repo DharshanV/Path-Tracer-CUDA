@@ -46,9 +46,9 @@ public:
         if (direction == BACKWARD)
             Position -= Front * velocity;
         if (direction == LEFT)
-            Position -= Right * velocity;
-        if (direction == RIGHT)
             Position += Right * velocity;
+        if (direction == RIGHT)
+            Position -= Right * velocity;
         if (direction == UP)
             Position += Up * velocity;
         if (direction == DOWN)
@@ -79,7 +79,7 @@ private:
         front.y = sin(glm::radians(pitch));
         front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
         Front = glm::normalize(front);
-        Right = glm::normalize(glm::cross(WorldUp, Front));
-        Up = glm::normalize(glm::cross(Front, Right));
+        Right = glm::normalize(glm::cross(Front, WorldUp));
+        Up = glm::normalize(glm::cross(Right, Front));
     }
 };

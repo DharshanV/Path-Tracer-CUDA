@@ -22,9 +22,10 @@ public:
 	}
 
 	~Renderer() {
-		cudaFree(dImageData);
 		cudaFree(&scene.lights);
 		cudaFree(&scene.spheres);
+		cudaFree(&scene.planes);
+		cudaFree(&scene.triangles);
 		cudaFree(&scene.materials);
 		cudaFree(dRandState);
 	}
@@ -38,6 +39,14 @@ public:
 	void addPlane(Plane p, Material mat) {
 		p.matIndex = (int)materials.size();
 		planes.push_back(p);
+		materials.push_back(mat);
+	}
+
+	void addModel(const Model& model,Material mat) {
+		for (Triangle t : model.triangles) {
+			t.matIndex = (int)materials.size();
+			triangles.push_back(t);
+		}
 		materials.push_back(mat);
 	}
 
@@ -60,27 +69,35 @@ public:
 private:
 	void commit() {
 		if (commited) return;
-		cudaMalloc(&dImageData, width * height * sizeof(glm::vec3));
 		cudaMalloc(&scene.lights, lights.size() * sizeof(Light));
 		cudaMalloc(&scene.spheres, spheres.size() * sizeof(Sphere));
 		cudaMalloc(&scene.planes, planes.size() * sizeof(Plane));
 		cudaMalloc(&scene.materials, materials.size() * sizeof(Material));
+		cudaMalloc(&scene.triangles, triangles.size() * sizeof(Triangle));
 
 		scene.numSpheres = (int)spheres.size();
 		scene.numLights = (int)lights.size();
 		scene.numPlanes = (int)planes.size();
+		scene.numTriangles = (int)triangles.size();
 
 		cudaMemcpy(scene.lights, &lights[0], lights.size() * sizeof(Light), cudaMemcpyHostToDevice);
 		cudaMemcpy(scene.spheres, &spheres[0], spheres.size() * sizeof(Sphere), cudaMemcpyHostToDevice);
 		cudaMemcpy(scene.planes, &planes[0], planes.size() * sizeof(Plane), cudaMemcpyHostToDevice);
 		cudaMemcpy(scene.materials, &materials[0], materials.size() * sizeof(Material), cudaMemcpyHostToDevice);
+		cudaMemcpy(scene.triangles, &triangles[0], triangles.size() * sizeof(Triangle), cudaMemcpyHostToDevice);
+
+		lights.clear();
+		spheres.clear();
+		planes.clear();
+		materials.clear();
+		triangles.clear();
+
 		commited = true;
 	}
 
 private:
 	int width;
 	int height;
-	glm::vec3* dImageData;
 	curandState* dRandState;
 	bool commited;
 
@@ -93,5 +110,6 @@ private:
 	std::vector<Light> lights;
 	std::vector<Sphere> spheres;
 	std::vector<Plane> planes;
+	std::vector<Triangle> triangles;
 	std::vector<Material> materials;
 };

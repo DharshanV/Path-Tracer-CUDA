@@ -96,7 +96,7 @@ glm::vec3 castRay(const Ray& ray, Scene* scene, curandState* localRandState, boo
         }
 
         Material& mat = hit.hitMaterial;
-        if (mat.isEmittance) { return mat.color; }
+        if (mat.isEmittance) { return color * mat.color; }
 
         glm::vec3 scatteredColor;
         Ray scatteredRay(glm::vec3(0), glm::vec3(0));
